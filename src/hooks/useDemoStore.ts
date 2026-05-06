@@ -1,12 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { Basket, DemoState, Preferences, PurchaseRecord } from "@/lib/types";
 
-const KEY = "walmart-ai-demo-v1";
+const KEY = "walmart-ai-demo-v2";
 
 const DEFAULT: DemoState = {
-  prefs: { weeklyBudget: 100, household: 2, diets: [], avoidJunk: true },
+  prefs: {
+    duration: "weekly",
+    budgetSource: "manual",
+    weeklyBudget: 100,
+    household: 2,
+    diets: [],
+    avoidJunk: true,
+    preferredBrand: "Great Value",
+  },
   basket: null,
   history: [],
+  onboarded: false,
 };
 
 function load(): DemoState {
@@ -20,10 +29,7 @@ function load(): DemoState {
   }
 }
 
-/**
- * Single demo-user store. Swap for Supabase queries later
- * without touching screen components.
- */
+/** Single demo-user store. Swap for Supabase later without touching screens. */
 export function useDemoStore() {
   const [state, setState] = useState<DemoState>(load);
 
@@ -32,7 +38,7 @@ export function useDemoStore() {
   }, [state]);
 
   const setPrefs = useCallback((prefs: Preferences) => {
-    setState(s => ({ ...s, prefs }));
+    setState(s => ({ ...s, prefs, onboarded: true }));
   }, []);
 
   const setBasket = useCallback((basket: Basket | null) => {
@@ -47,6 +53,9 @@ export function useDemoStore() {
       savings: basket.savings,
       budget: basket.budget,
       itemCount: basket.lines.reduce((n, l) => n + l.qty, 0),
+      junkCount: basket.lines.filter(l => l.item.isJunk).reduce((n, l) => n + l.qty, 0),
+      healthySwaps: basket.lines.filter(l => l.item.healthScore >= 8).length,
+      strategy: basket.strategy,
     };
     setState(s => ({ ...s, history: [rec, ...s.history], basket: null }));
     return rec;

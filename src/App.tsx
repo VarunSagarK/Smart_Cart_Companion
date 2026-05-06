@@ -4,10 +4,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
-import Budget from "./pages/Budget.tsx";
+import AIOnboarding from "./pages/AIOnboarding.tsx";
+import Results from "./pages/Results.tsx";
 import Basket from "./pages/Basket.tsx";
 import Checkout from "./pages/Checkout.tsx";
-import Dashboard from "./pages/Dashboard.tsx";
+import Wellness from "./pages/Wellness.tsx";
+import MyItems from "./pages/MyItems.tsx";
+import SearchPage from "./pages/Search.tsx";
 import Account from "./pages/Account.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -21,10 +24,13 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/budget" element={<Budget />} />
+          <Route path="/ai" element={<AIOnboarding />} />
+          <Route path="/results" element={<Results />} />
           <Route path="/basket" element={<Basket />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/wellness" element={<Wellness />} />
+          <Route path="/my-items" element={<MyItems />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/account" element={<Account />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -13,7 +13,7 @@ const Checkout = () => {
 
   useEffect(() => {
     if (!state.basket) {
-      nav("/budget", { replace: true });
+      nav("/ai", { replace: true });
       return;
     }
     const t = setTimeout(() => {
@@ -25,15 +25,15 @@ const Checkout = () => {
   }, []);
 
   return (
-    <Screen title="Checkout" back hideTabs>
+    <Screen title="Walmart Checkout" back hideTabs>
       <Card>
         <CardContent className="p-8 flex flex-col items-center text-center gap-3">
           {!done ? (
             <>
               <Loader2 className="size-12 text-walmart-blue animate-spin" />
-              <p className="font-semibold mt-2">Opening Walmart…</p>
+              <p className="font-semibold mt-2">Handing off to Walmart…</p>
               <p className="text-sm text-muted-foreground">
-                Handing off your basket to the Walmart cart.
+                Your basket is being sent to the Walmart cart and payment flow.
               </p>
             </>
           ) : (
@@ -41,13 +41,13 @@ const Checkout = () => {
               <CheckCircle2 className="size-14 text-success" />
               <p className="text-xl font-bold mt-1">Order placed!</p>
               <p className="text-sm text-muted-foreground">
-                Your purchase has been recorded. See how this week stacked up.
+                Recorded to your wellness dashboard.
               </p>
               <Button
-                onClick={() => nav("/dashboard")}
+                onClick={() => nav("/wellness")}
                 className="mt-4 bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground"
               >
-                View Wellness Dashboard
+                View Savings & Wellness
               </Button>
             </>
           )}
