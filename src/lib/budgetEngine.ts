@@ -1,34 +1,54 @@
 import { dealForItem } from "./mockDeals";
-import { Basket, BasketLine, CatalogItem, Preferences } from "./types";
+import { Basket, BasketLine, BasketStrategy, CatalogItem, DietId, Preferences } from "./types";
 
 /**
- * optimizeBasket — given a budget + preferences, builds a balanced basket
- * under the budget, prioritizing on-sale items and higher healthScore.
- *
- * Pure function: swap CATALOG / DEALS for live API data later.
+ * Pure scoring + filling engine. Strategies share the same machinery
+ * but rank items differently. Swap mockCatalog for live APIs later.
  */
-export function optimizeBasket(prefs: Preferences, catalog: CatalogItem[]): Basket {
+
+function passesDiets(item: CatalogItem, diets: DietId[]): boolean {
+  if (!diets.length || diets.includes("no-preference")) return true;
+  // every selected diet must match a tag (except meta-diets handled below)
+  return diets.every(d => {
+    if (d === "no-preference" || d === "family-essentials" || d === "budget-saver" || d === "organic-preferred") return true;
+    return item.tags?.includes(d);
+  });
+}
+
+function rank(item: CatalogItem, strategy: BasketStrategy, prefs: Preferences): number {
+  const saleBonus = item.onSale ? 1 : 0;
+  switch (strategy) {
+    case "lowest-cost":
+      return (1 / item.price) * (1 + saleBonus * 0.5);
+    case "healthiest":
+      return item.healthScore + saleBonus * 1.5;
+    case "bulk-saver":
+      return (item.bulk ? 5 : 0) + (item.basePrice - item.price) * 2 + item.healthScore * 0.3;
+    case "family":
+      return (item.tags?.includes("family-essentials") ? 4 : 0) + item.healthScore * 0.6 + saleBonus;
+    case "brand":
+      return (prefs.preferredBrand && item.brand === prefs.preferredBrand ? 6 : 0) + item.healthScore * 0.4 + saleBonus;
+  }
+}
+
+export function optimizeBasket(
+  prefs: Preferences,
+  catalog: CatalogItem[],
+  strategy: BasketStrategy = "healthiest",
+): Basket {
   const filtered = catalog.filter(i => {
     if (prefs.avoidJunk && i.isJunk) return false;
-    for (const d of prefs.diets) {
-      if (!i.tags?.includes(d)) return false;
-    }
-    return true;
+    return passesDiets(i, prefs.diets);
   });
 
-  // score = healthScore + sale bonus, value = score / price
-  const ranked = [...filtered].sort((a, b) => {
-    const sa = (a.healthScore + (a.onSale ? 2 : 0)) / a.price;
-    const sb = (b.healthScore + (b.onSale ? 2 : 0)) / b.price;
-    return sb - sa;
-  });
+  const ranked = [...filtered].sort((a, b) => rank(b, strategy, prefs) - rank(a, strategy, prefs));
 
-  // Aim for category balance: ensure at least 1 from each available category first.
   const lines: BasketLine[] = [];
   const seenCats = new Set<string>();
   let total = 0;
   const householdMult = Math.max(1, Math.round(prefs.household / 2));
 
+  // Pass 1: cover each category once
   for (const item of ranked) {
     if (seenCats.has(item.category)) continue;
     const qty = householdMult;
@@ -38,8 +58,7 @@ export function optimizeBasket(prefs: Preferences, catalog: CatalogItem[]): Bask
     total += cost;
     seenCats.add(item.category);
   }
-
-  // Then greedily add the next-best-value items until budget is filled.
+  // Pass 2: greedily fill remaining budget
   for (const item of ranked) {
     if (lines.find(l => l.item.id === item.id)) continue;
     const cost = item.price * householdMult;
@@ -48,20 +67,21 @@ export function optimizeBasket(prefs: Preferences, catalog: CatalogItem[]): Bask
     total += cost;
   }
 
-  const savings = lines.reduce(
-    (s, l) => s + (l.item.basePrice - l.item.price) * l.qty,
-    0,
-  );
-
+  const savings = lines.reduce((s, l) => s + (l.item.basePrice - l.item.price) * l.qty, 0);
   return {
     lines,
     subtotal: +total.toFixed(2),
     savings: +savings.toFixed(2),
     budget: prefs.weeklyBudget,
+    strategy,
   };
 }
 
-/** Suggest a healthier swap for a given line, if a same-category higher-score item fits. */
+export function buildAllStrategies(prefs: Preferences, catalog: CatalogItem[]): Record<BasketStrategy, Basket> {
+  const strategies: BasketStrategy[] = ["lowest-cost", "healthiest", "bulk-saver", "family", "brand"];
+  return Object.fromEntries(strategies.map(s => [s, optimizeBasket(prefs, catalog, s)])) as Record<BasketStrategy, Basket>;
+}
+
 export function suggestSwap(
   line: BasketLine,
   basket: Basket,
@@ -80,3 +100,11 @@ export function suggestSwap(
       .sort((a, b) => b.healthScore - a.healthScore)[0] ?? null
   );
 }
+
+export const STRATEGY_META: Record<BasketStrategy, { label: string; tagline: string }> = {
+  "lowest-cost": { label: "Lowest Cost", tagline: "Stretch every dollar" },
+  "healthiest": { label: "Healthiest", tagline: "Best nutrition in budget" },
+  "bulk-saver": { label: "Bulk Saver", tagline: "Per-unit value picks" },
+  "family": { label: "Family", tagline: "Household essentials" },
+  "brand": { label: "Brand Preference", tagline: "Favor your brand" },
+};
