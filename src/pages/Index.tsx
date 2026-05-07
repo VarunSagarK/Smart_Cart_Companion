@@ -19,6 +19,10 @@ const DEPARTMENTS = [
 const Index = () => {
   const { state } = useDemoStore();
   const deals = CATALOG.filter(c => c.onSale).slice(0, 6);
+  const dash = buildDashboard(state.history, state.prefs.weeklyBudget);
+  const today = new Date();
+  const daysLeftInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() - today.getDate();
+  const showEom = state.history.length > 0 && (dash.weekUsedPct >= 80 || daysLeftInMonth <= 7);
 
   return (
     <Screen title="Walmart" subtitle="How do you want to save today?">
@@ -29,6 +33,26 @@ const Index = () => {
       >
         <Search className="size-4" /> Search Walmart
       </Link>
+
+      {/* End-of-month contextual helper */}
+      {showEom && (
+        <Card className="border-walmart-yellow bg-walmart-yellow/15">
+          <CardContent className="p-3 flex items-start gap-2">
+            <AlertCircle className="size-4 text-walmart-blue-dark mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-walmart-blue-dark">
+                Want help stretching this month's grocery budget?
+              </p>
+              <p className="text-[11px] text-foreground/70">
+                {daysLeftInMonth} days left · let's finish comfortably within budget.
+              </p>
+            </div>
+            <Button asChild size="sm" className="bg-walmart-blue text-primary-foreground h-8">
+              <Link to="/ai">Plan</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* AI hero — emphasized entry to AI grocery planner */}
       <Link to="/ai" className="block">
