@@ -45,6 +45,31 @@ export function useDemoStore() {
     setState(s => ({ ...s, basket }));
   }, []);
 
+  const addItemsToBasket = useCallback((items: import("@/lib/types").CatalogItem[]) => {
+    if (!items.length) return;
+    setState(s => {
+      const existing = s.basket;
+      const baseLines = existing?.lines ?? [];
+      const map = new Map(baseLines.map(l => [l.item.id, { ...l }]));
+      for (const item of items) {
+        const cur = map.get(item.id);
+        if (cur) cur.qty += 1;
+        else map.set(item.id, { item, qty: 1 });
+      }
+      const lines = Array.from(map.values());
+      const subtotal = +lines.reduce((n, l) => n + l.item.price * l.qty, 0).toFixed(2);
+      const savings = +lines.reduce((n, l) => n + (l.item.basePrice - l.item.price) * l.qty, 0).toFixed(2);
+      const basket: Basket = {
+        lines,
+        subtotal,
+        savings,
+        budget: existing?.budget ?? s.prefs.weeklyBudget,
+        strategy: existing?.strategy ?? "healthiest",
+      };
+      return { ...s, basket };
+    });
+  }, []);
+
   const recordPurchase = useCallback((basket: Basket) => {
     const rec: PurchaseRecord = {
       id: crypto.randomUUID(),
@@ -61,5 +86,5 @@ export function useDemoStore() {
     return rec;
   }, []);
 
-  return { state, setPrefs, setBasket, recordPurchase };
+  return { state, setPrefs, setBasket, addItemsToBasket, recordPurchase };
 }
