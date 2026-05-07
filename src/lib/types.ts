@@ -16,6 +16,39 @@ export type DietId =
   | "organic-preferred"
   | "no-preference";
 
+export type FoodTypeId =
+  | "american"
+  | "asian"
+  | "chinese"
+  | "comfort"
+  | "frozen"
+  | "indian"
+  | "italian"
+  | "mediterranean"
+  | "mexican"
+  | "middle-eastern"
+  | "organic"
+  | "quick-meals"
+  | "seafood"
+  | "snacks"
+  | "vegetarian-comfort";
+
+export type MotivationId =
+  | "birthday-week"
+  | "budget-friendly"
+  | "comfort-meals"
+  | "family-gathering"
+  | "fitness-goals"
+  | "health-conscious"
+  | "high-protein"
+  | "kids-lunch-prep"
+  | "meal-prep"
+  | "quick-easy"
+  | "special-occasion"
+  | "student-budget"
+  | "vacation-prep"
+  | "weekly-essentials";
+
 export type BasketStrategy =
   | "lowest-cost"
   | "healthiest"
@@ -23,8 +56,27 @@ export type BasketStrategy =
   | "family"
   | "brand";
 
+/** Filter chips for Results page (drives a re-rank/refilter). */
+export type ResultFilter =
+  | "all"
+  | "budget-saver"
+  | "bulk-savings"
+  | "family-essentials"
+  | "healthy"
+  | "high-protein"
+  | "organic"
+  | "snacks";
+
 export type BudgetSource = "manual" | "ynab" | "mint";
-export type PlanDuration = "weekly" | "monthly";
+export type PlanDuration = "weekly" | "biweekly" | "monthly";
+
+export interface Household {
+  adults: number;
+  seniors: number;
+  kids: number;
+  kidsAges?: string;
+  seniorsAges?: string;
+}
 
 export interface CatalogItem {
   id: string;
@@ -37,8 +89,9 @@ export interface CatalogItem {
   onSale: boolean;
   healthScore: number;   // 0-10
   isJunk?: boolean;
-  bulk?: boolean;        // good per-unit value at scale
-  tags?: string[];       // diet tags
+  bulk?: boolean;
+  tags?: string[];          // diet tags
+  cuisines?: FoodTypeId[];  // food-type tags
 }
 
 export interface Deal {
@@ -51,6 +104,7 @@ export interface Deal {
 export interface BasketLine {
   item: CatalogItem;
   qty: number;
+  weekIndex?: number;       // for biweekly/monthly grouping
   appliedDeal?: Deal;
 }
 
@@ -66,10 +120,16 @@ export interface Preferences {
   duration: PlanDuration;
   budgetSource: BudgetSource;
   weeklyBudget: number;     // normalized weekly $
-  household: number;
+  /** Total budget the user entered (weekly/biweekly/monthly) — for display only. */
+  rawBudget?: number;
+  household: number;        // legacy — total people
+  householdBreakdown?: Household;
   diets: DietId[];
+  foodTypes?: FoodTypeId[];
+  motivation?: MotivationId;
+  kitchenHave?: string[];   // ids of items already at home
   avoidJunk: boolean;
-  preferredBrand?: string;  // used by brand strategy
+  preferredBrand?: string;
 }
 
 export interface PurchaseRecord {
@@ -88,5 +148,6 @@ export interface DemoState {
   prefs: Preferences;
   basket: Basket | null;
   history: PurchaseRecord[];
+  wishlist: string[];
   onboarded: boolean;
 }
