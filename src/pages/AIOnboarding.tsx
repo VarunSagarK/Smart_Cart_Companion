@@ -105,6 +105,11 @@ const AIOnboarding = () => {
   const [diets, setDiets] = useState<DietId[]>(state.prefs.diets);
   const [avoidJunk, setAvoidJunk] = useState(state.prefs.avoidJunk);
   const [brand, setBrand] = useState(state.prefs.preferredBrand ?? ALL_BRANDS[0]);
+  const [connected, setConnected] = useState<Record<BudgetSource, boolean>>({
+    manual: true,
+    ynab: false,
+    mint: false,
+  });
 
   const toggleDiet = (id: DietId) =>
     setDiets(d => {
