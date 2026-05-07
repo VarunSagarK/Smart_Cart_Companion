@@ -1,5 +1,7 @@
-import { Lightbulb, PiggyBank, TrendingUp, Wallet, Leaf, Repeat } from "lucide-react";
+import { Lightbulb, PiggyBank, TrendingUp, Wallet, Leaf, Repeat, Trophy, AlertCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Screen } from "@/components/Screen";
 import { useDemoStore } from "@/hooks/useDemoStore";
@@ -35,8 +37,41 @@ const Wellness = () => {
   const { state } = useDemoStore();
   const s = buildDashboard(state.history, state.prefs.weeklyBudget);
 
+  // Tiny wins (lightweight, supportive copy)
+  const wins: string[] = [];
+  if (s.weekUsedPct < 100 && s.shopsThisMonth >= 2) wins.push("You stayed within budget two weeks in a row.");
+  if (s.junkReductionPct >= 5) wins.push(`You reduced junk food by ${s.junkReductionPct}%.`);
+  if (s.monthlySavings >= 10) wins.push(`You saved $${s.monthlySavings.toFixed(0)} using flyer deals.`);
+  if (!wins.length) wins.push("Your first plan kicks off your savings streak — nice start.");
+
+  // End-of-month survival contextual prompt
+  const today = new Date();
+  const daysLeftInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() - today.getDate();
+  const trendingOver = s.weekUsedPct >= 80;
+  const showEom = trendingOver || daysLeftInMonth <= 7;
+
   return (
     <Screen title="Savings & Wellness" subtitle="Your money & habits">
+      {/* End-of-month contextual AI helper */}
+      {showEom && (
+        <Card className="border-walmart-yellow bg-walmart-yellow/15">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertCircle className="size-5 text-walmart-blue-dark mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-walmart-blue-dark">
+                {trendingOver ? "Want help stretching this week's budget?" : "Let's comfortably finish the month within budget."}
+              </p>
+              <p className="text-xs text-foreground/70 mt-1">
+                {daysLeftInMonth} day{daysLeftInMonth === 1 ? "" : "s"} left · we'll suggest cheaper swaps and bulk basics.
+              </p>
+              <Button asChild size="sm" className="mt-2 bg-walmart-blue text-primary-foreground h-8">
+                <Link to="/ai">Open AI Planner</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* This week's budget */}
       <Card>
         <CardContent className="p-4 space-y-2">
@@ -52,6 +87,21 @@ const Wellness = () => {
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">{s.weekUsedPct}% used</span>
             <span className="text-success font-semibold">${s.weekRemaining.toFixed(2)} remaining</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tiny wins */}
+      <Card>
+        <CardContent className="p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <Trophy className="size-4 text-walmart-yellow" />
+            <p className="text-sm font-semibold">Small wins</p>
+          </div>
+          <div className="space-y-1.5">
+            {wins.map((w, i) => (
+              <p key={i} className="text-sm text-foreground/80">• {w}</p>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -90,16 +140,6 @@ const Wellness = () => {
               <span className="ml-auto font-semibold">{s.healthierSwaps}</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Insights */}
-      <Card>
-        <CardContent className="p-4 space-y-1.5">
-          <p className="text-sm font-semibold mb-1">Smart insights</p>
-          {s.insights.map((i, idx) => (
-            <p key={idx} className="text-sm text-foreground/80">• {i}</p>
-          ))}
         </CardContent>
       </Card>
 
