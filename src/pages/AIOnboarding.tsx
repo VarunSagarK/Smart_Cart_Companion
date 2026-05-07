@@ -242,11 +242,12 @@ const AIOnboarding = () => {
                 {duration === "monthly" && (
                   <p className="text-xs text-muted-foreground">≈ ${weeklyBudget}/week</p>
                 )}
-              {budget < 20 && (
-                <p className="text-xs text-destructive">Minimum $20 required.</p>
-              )}
-            </CardContent>
-          </Card>
+                {budget < 20 && (
+                  <p className="text-xs text-destructive">Minimum $20 required.</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
 
