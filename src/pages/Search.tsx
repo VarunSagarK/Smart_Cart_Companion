@@ -1,12 +1,20 @@
 import { useMemo, useState } from "react";
-import { Search as SearchIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search as SearchIcon, ShoppingCart } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/Screen";
+import { ProductCard } from "@/components/ProductCard";
 import { CATALOG } from "@/lib/mockCatalog";
+import { useDemoStore } from "@/hooks/useDemoStore";
+import { toast } from "sonner";
 
 const SearchPage = () => {
+  const nav = useNavigate();
+  const { addItemsToBasket } = useDemoStore();
   const [q, setQ] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
   const results = useMemo(() => {
     const term = q.trim().toLowerCase();
     const list = term
@@ -14,6 +22,21 @@ const SearchPage = () => {
       : CATALOG;
     return [...list].sort((a, b) => a.name.localeCompare(b.name));
   }, [q]);
+
+  const toggle = (id: string) =>
+    setSelected(s => {
+      const next = new Set(s);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const handleAdd = () => {
+    const items = CATALOG.filter(c => selected.has(c.id));
+    addItemsToBasket(items);
+    toast.success(`${items.length} item${items.length === 1 ? "" : "s"} added to cart`);
+    setSelected(new Set());
+    nav("/basket");
+  };
 
   return (
     <Screen title="Search" subtitle="Walmart catalog">
@@ -27,25 +50,33 @@ const SearchPage = () => {
           className="pl-9"
         />
       </div>
-      <Card>
-        <CardContent className="p-4 divide-y divide-border">
-          {results.map(item => (
-            <div key={item.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-              <div className="size-10 rounded-md bg-secondary flex items-center justify-center text-sm font-semibold text-walmart-blue uppercase">
-                {item.name.charAt(0)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.name}</p>
-                <p className="text-xs text-muted-foreground">{item.brand} · {item.unit}</p>
-              </div>
-              <p className="text-sm font-bold text-walmart-blue">${item.price.toFixed(2)}</p>
-            </div>
-          ))}
-          {!results.length && (
-            <p className="text-sm text-muted-foreground text-center py-6">No items match "{q}".</p>
-          )}
-        </CardContent>
-      </Card>
+
+      {selected.size > 0 && (
+        <div className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-walmart-blue text-primary-foreground flex items-center justify-between">
+          <span className="text-sm font-semibold">{selected.size} selected</span>
+          <Button
+            size="sm"
+            onClick={handleAdd}
+            className="bg-walmart-yellow text-walmart-blue-dark hover:bg-walmart-yellow/90 h-8 font-semibold"
+          >
+            <ShoppingCart className="size-3.5 mr-1" /> Add to cart
+          </Button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-2">
+        {results.map(item => (
+          <ProductCard
+            key={item.id}
+            item={item}
+            selected={selected.has(item.id)}
+            onToggle={toggle}
+          />
+        ))}
+      </div>
+      {!results.length && (
+        <p className="text-sm text-muted-foreground text-center py-6">No items match "{q}".</p>
+      )}
     </Screen>
   );
 };
