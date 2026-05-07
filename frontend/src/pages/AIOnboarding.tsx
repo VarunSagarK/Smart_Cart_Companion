@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,9 @@ import {
   Preferences,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
+/** Alphabetical chip lists. */
 const DIETS: { id: DietId; label: string }[] = [
   { id: "budget-saver", label: "Budget Saver" },
   { id: "dairy-free", label: "Dairy-Free" },
@@ -114,6 +116,13 @@ const Chip = ({ active, onClick, children }: { active: boolean; onClick: () => v
   >
     {children}
   </button>
+);
+
+/** Inline validation pill — Walmart-light. */
+const ValidationNote = ({ children }: { children: React.ReactNode }) => (
+  <p className="flex items-center gap-1.5 text-[11px] text-walmart-blue-dark mt-2">
+    <AlertCircle className="size-3" /> {children}
+  </p>
 );
 
 /** ---------- Lightweight integration login mocks ---------- */
@@ -218,8 +227,9 @@ const AIOnboarding = () => {
   const [connected, setConnected] = useState<Record<BudgetSource, boolean>>({
     manual: true,
     ynab: false,
-    mint: false,
+    koho: false,
   });
+  const [showErrors, setShowErrors] = useState(false);
 
   const toggleDiet = (id: DietId) =>
     setDiets(d => {
@@ -236,9 +246,36 @@ const AIOnboarding = () => {
   const weeklyBudget = useMemo(() => +(budget / weeks).toFixed(2), [budget, weeks]);
   const totalPeople = hh.adults + hh.seniors + hh.kids;
 
-  const valid = budget >= 20 && totalPeople >= 1 && (budgetSource === "manual" || connected[budgetSource]);
+  // Detailed validation flags
+  const errors = useMemo(() => {
+    const e: { duration?: string; budget?: string; household?: string; foodOrDiet?: string } = {};
+    if (!duration) e.duration = "Choose how long you're planning for.";
+    if (budgetSource === "manual" && (!budget || budget < 20)) {
+      e.budget = "Enter a grocery budget of at least $20.";
+    } else if (budgetSource !== "manual" && !connected[budgetSource]) {
+      e.budget = `Sign in to ${budgetSource.toUpperCase()} or switch to manual entry.`;
+    }
+    if (totalPeople < 1) e.household = "Add at least one person in your household.";
+    const hasDiet = diets.some(d => d !== "no-preference");
+    if (foodTypes.length === 0 && !hasDiet) {
+      e.foodOrDiet = "Pick at least one food type or dietary preference.";
+    }
+    return e;
+  }, [duration, budgetSource, budget, connected, totalPeople, diets, foodTypes]);
+
+  const valid = Object.keys(errors).length === 0;
 
   const handleFinish = () => {
+    if (!valid) {
+      setShowErrors(true);
+      const first = errors.duration || errors.budget || errors.household || errors.foodOrDiet;
+      if (first) toast.error(first);
+      // Try to scroll to first error
+      setTimeout(() => {
+        document.querySelector("[data-error='true']")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
     const prefs: Preferences = {
       duration,
       budgetSource,
@@ -279,154 +316,167 @@ const AIOnboarding = () => {
       </Card>
 
       {/* 1 — Duration */}
-      <Section step={1} title="How long are we planning for?" hint="Pick the rhythm that fits your household.">
-        <div className="grid grid-cols-3 gap-2">
-          {(["weekly", "biweekly", "monthly"] as PlanDuration[]).map(d => (
-            <button
-              key={d}
-              onClick={() => setDuration(d)}
-              className={cn(
-                "rounded-lg border py-3 text-xs font-semibold capitalize transition",
-                duration === d ? "border-walmart-blue bg-walmart-blue/5 text-walmart-blue" : "border-border bg-background",
-              )}
-            >
-              {d === "biweekly" ? "Bi-weekly" : d}
-            </button>
-          ))}
-        </div>
-      </Section>
+      <div data-error={showErrors && !!errors.duration}>
+        <Section step={1} title="How long are we planning for?" hint="Pick the rhythm that fits your household.">
+          <div className="grid grid-cols-3 gap-2">
+            {(["weekly", "biweekly", "monthly"] as PlanDuration[]).map(d => (
+              <button
+                key={d}
+                onClick={() => setDuration(d)}
+                className={cn(
+                  "rounded-lg border py-3 text-xs font-semibold capitalize transition",
+                  duration === d ? "border-walmart-blue bg-walmart-blue/5 text-walmart-blue" : "border-border bg-background",
+                )}
+              >
+                {d === "biweekly" ? "Bi-weekly" : d}
+              </button>
+            ))}
+          </div>
+          {showErrors && errors.duration && <ValidationNote>{errors.duration}</ValidationNote>}
+        </Section>
+      </div>
 
       {/* 2 — Budget */}
-      <Section step={2} title="Where should we get our budget from?" hint="Manual works great. Connect YNAB or Mint to pull a recommended grocery budget.">
-        <div className="space-y-2">
-          {/* Manual */}
-          <button
-            type="button"
-            onClick={() => setBudgetSource("manual")}
-            className={cn(
-              "w-full flex items-center gap-3 rounded-lg border p-3 text-left transition",
-              budgetSource === "manual"
-                ? "border-walmart-blue bg-walmart-blue/5"
-                : "border-border bg-background hover:bg-secondary",
-            )}
-          >
-            <span className="size-9 rounded-md bg-walmart-blue text-primary-foreground flex items-center justify-center text-sm font-bold">$</span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold">Manual Entry</p>
-              <p className="text-[11px] text-muted-foreground">Set a grocery budget yourself</p>
-            </div>
-            {budgetSource === "manual" && <span className="text-xs font-semibold text-walmart-blue">Selected</span>}
-          </button>
+      <div data-error={showErrors && !!errors.budget}>
+        <Section step={2} title="Where should we get our budget from?" hint="Manual works great. Connect YNAB or KOHO to pull a recommended grocery budget.">
+          <div className="space-y-2">
+            {/* Manual */}
+            <button
+              type="button"
+              onClick={() => setBudgetSource("manual")}
+              className={cn(
+                "w-full flex items-center gap-3 rounded-lg border p-3 text-left transition",
+                budgetSource === "manual"
+                  ? "border-walmart-blue bg-walmart-blue/5"
+                  : "border-border bg-background hover:bg-secondary",
+              )}
+            >
+              <span className="size-9 rounded-md bg-walmart-blue text-primary-foreground flex items-center justify-center text-sm font-bold">$</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Manual Entry</p>
+                <p className="text-[11px] text-muted-foreground">Set a grocery budget yourself</p>
+              </div>
+              {budgetSource === "manual" && <span className="text-xs font-semibold text-walmart-blue">Selected</span>}
+            </button>
 
-          {/* YNAB */}
-          <div onClick={() => setBudgetSource("ynab")}>
-            <IntegrationLogin
-              brand="YNAB"
-              color="#85B934"
-              connected={connected.ynab}
-              onConnect={() => {
-                setConnected(c => ({ ...c, ynab: true }));
-                setBudgetSource("ynab");
-                setBudget(120 * weeks);
-              }}
-            />
-          </div>
-
-          {/* Mint */}
-          <div onClick={() => setBudgetSource("mint")}>
-            <IntegrationLogin
-              brand="Mint"
-              color="#00A38B"
-              connected={connected.mint}
-              onConnect={() => {
-                setConnected(c => ({ ...c, mint: true }));
-                setBudgetSource("mint");
-                setBudget(110 * weeks);
-              }}
-            />
-          </div>
-
-          {/* Always show the budget input — required if no integration connected */}
-          <div className="rounded-lg border border-border p-3 space-y-1.5 bg-card">
-            <Label htmlFor="b" className="text-xs font-semibold">
-              {duration === "weekly" ? "Weekly" : duration === "biweekly" ? "Bi-weekly" : "Monthly"} grocery budget
-            </Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-              <Input
-                id="b"
-                type="number"
-                min={20}
-                value={budget}
-                onChange={e => setBudget(+e.target.value || 0)}
-                className="pl-7 text-lg font-semibold"
+            {/* KOHO (alphabetically before YNAB) */}
+            <div onClick={() => setBudgetSource("koho")}>
+              <IntegrationLogin
+                brand="KOHO"
+                color="#0F172A"
+                connected={connected.koho}
+                onConnect={() => {
+                  setConnected(c => ({ ...c, koho: true }));
+                  setBudgetSource("koho");
+                  setBudget(110 * weeks);
+                }}
               />
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              ≈ ${weeklyBudget}/week · for {weeks} week{weeks > 1 ? "s" : ""}
-            </p>
-            {budget < 20 && <p className="text-xs text-destructive">Minimum $20 required.</p>}
+
+            {/* YNAB */}
+            <div onClick={() => setBudgetSource("ynab")}>
+              <IntegrationLogin
+                brand="YNAB"
+                color="#85B934"
+                connected={connected.ynab}
+                onConnect={() => {
+                  setConnected(c => ({ ...c, ynab: true }));
+                  setBudgetSource("ynab");
+                  setBudget(120 * weeks);
+                }}
+              />
+            </div>
+
+            {/* Always show the budget input — required if no integration connected */}
+            <div className="rounded-lg border border-border p-3 space-y-1.5 bg-card">
+              <Label htmlFor="b" className="text-xs font-semibold">
+                {duration === "weekly" ? "Weekly" : duration === "biweekly" ? "Bi-weekly" : "Monthly"} grocery budget
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                <Input
+                  id="b"
+                  type="number"
+                  min={20}
+                  value={budget}
+                  onChange={e => setBudget(+e.target.value || 0)}
+                  className="pl-7 text-lg font-semibold"
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                ≈ ${weeklyBudget}/week · for {weeks} week{weeks > 1 ? "s" : ""}
+              </p>
+              {budget < 20 && <p className="text-xs text-destructive">Minimum $20 required.</p>}
+            </div>
           </div>
-        </div>
-      </Section>
+          {showErrors && errors.budget && <ValidationNote>{errors.budget}</ValidationNote>}
+        </Section>
+      </div>
 
       {/* 3 — Household */}
-      <Section step={3} title="How many people are we shopping for?" hint="We use this to estimate quantities and nutrition.">
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { k: "adults" as const, label: "Adults" },
-            { k: "seniors" as const, label: "Seniors" },
-            { k: "kids" as const, label: "Kids" },
-          ].map(({ k, label }) => (
-            <div key={k} className="rounded-lg border border-border p-2">
-              <Label className="text-[11px] text-muted-foreground">{label}</Label>
-              <Input
-                type="number"
-                min={0}
-                max={10}
-                value={hh[k]}
-                onChange={e => setHh(h => ({ ...h, [k]: Math.max(0, +e.target.value || 0) }))}
-                className="h-9 text-base font-semibold mt-1"
-              />
-            </div>
-          ))}
-        </div>
-        {(hh.kids > 0 || hh.seniors > 0) && (
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {hh.kids > 0 && (
-              <div>
-                <Label className="text-[11px] text-muted-foreground">Kids ages (optional)</Label>
-                <Input placeholder="e.g. 4, 9" value={hh.kidsAges ?? ""} onChange={e => setHh(h => ({ ...h, kidsAges: e.target.value }))} className="h-9 text-sm mt-1" />
+      <div data-error={showErrors && !!errors.household}>
+        <Section step={3} title="How many people are we shopping for?" hint="We use this to estimate quantities and nutrition.">
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { k: "adults" as const, label: "Adults" },
+              { k: "kids" as const, label: "Kids" },
+              { k: "seniors" as const, label: "Seniors" },
+            ].map(({ k, label }) => (
+              <div key={k} className="rounded-lg border border-border p-2">
+                <Label className="text-[11px] text-muted-foreground">{label}</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={10}
+                  value={hh[k]}
+                  onChange={e => setHh(h => ({ ...h, [k]: Math.max(0, +e.target.value || 0) }))}
+                  className="h-9 text-base font-semibold mt-1"
+                />
               </div>
-            )}
-            {hh.seniors > 0 && (
-              <div>
-                <Label className="text-[11px] text-muted-foreground">Seniors ages (optional)</Label>
-                <Input placeholder="e.g. 68, 72" value={hh.seniorsAges ?? ""} onChange={e => setHh(h => ({ ...h, seniorsAges: e.target.value }))} className="h-9 text-sm mt-1" />
-              </div>
-            )}
+            ))}
           </div>
-        )}
-        {totalPeople < 1 && <p className="text-xs text-destructive mt-2">Add at least one person.</p>}
-      </Section>
+          {(hh.kids > 0 || hh.seniors > 0) && (
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {hh.kids > 0 && (
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Kids ages (optional)</Label>
+                  <Input placeholder="e.g. 4, 9" value={hh.kidsAges ?? ""} onChange={e => setHh(h => ({ ...h, kidsAges: e.target.value }))} className="h-9 text-sm mt-1" />
+                </div>
+              )}
+              {hh.seniors > 0 && (
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Seniors ages (optional)</Label>
+                  <Input placeholder="e.g. 68, 72" value={hh.seniorsAges ?? ""} onChange={e => setHh(h => ({ ...h, seniorsAges: e.target.value }))} className="h-9 text-sm mt-1" />
+                </div>
+              )}
+            </div>
+          )}
+          {showErrors && errors.household && <ValidationNote>{errors.household}</ValidationNote>}
+        </Section>
+      </div>
 
       {/* 4 — Food Types */}
-      <Section step={4} title="What kind of foods do we enjoy most?" hint="Pick a few to shape grocery suggestions.">
-        <div className="flex flex-wrap gap-2">
-          {FOOD_TYPES.map(f => (
-            <Chip key={f.id} active={foodTypes.includes(f.id)} onClick={() => toggleFood(f.id)}>{f.label}</Chip>
-          ))}
-        </div>
-      </Section>
+      <div data-error={showErrors && !!errors.foodOrDiet && foodTypes.length === 0}>
+        <Section step={4} title="What kind of foods do we enjoy most?" hint="Pick a few to shape grocery suggestions.">
+          <div className="flex flex-wrap gap-2">
+            {FOOD_TYPES.map(f => (
+              <Chip key={f.id} active={foodTypes.includes(f.id)} onClick={() => toggleFood(f.id)}>{f.label}</Chip>
+            ))}
+          </div>
+        </Section>
+      </div>
 
       {/* 5 — Diets */}
-      <Section step={5} title="Any dietary preferences?" hint="Multi-select. Use 'No Preference' to skip.">
-        <div className="flex flex-wrap gap-2">
-          {DIETS.map(d => (
-            <Chip key={d.id} active={diets.includes(d.id)} onClick={() => toggleDiet(d.id)}>{d.label}</Chip>
-          ))}
-        </div>
-      </Section>
+      <div data-error={showErrors && !!errors.foodOrDiet}>
+        <Section step={5} title="Any dietary preferences?" hint="Multi-select. Use 'No Preference' to skip.">
+          <div className="flex flex-wrap gap-2">
+            {DIETS.map(d => (
+              <Chip key={d.id} active={diets.includes(d.id)} onClick={() => toggleDiet(d.id)}>{d.label}</Chip>
+            ))}
+          </div>
+          {showErrors && errors.foodOrDiet && <ValidationNote>{errors.foodOrDiet}</ValidationNote>}
+        </Section>
+      </div>
 
       {/* 6 — Motivation */}
       <Section step={6} title="What are we focusing on this time?" hint="We'll prioritize items that match.">
@@ -439,8 +489,8 @@ const AIOnboarding = () => {
         </select>
       </Section>
 
-      {/* 7 — Kitchen Have */}
-      <Section step={7} title="What do we already have in our kitchen?" hint="Helps us avoid duplicate purchases.">
+      {/* 7 — Kitchen Have (renamed copy) */}
+      <Section step={7} title="What do we already have at home?" hint="Helps us avoid duplicate purchases.">
         <div className="grid grid-cols-4 gap-2">
           {KITCHEN_BASICS.map(k => {
             const active = kitchenHave.includes(k.id);
@@ -490,12 +540,16 @@ const AIOnboarding = () => {
       {/* Submit */}
       <Button
         onClick={handleFinish}
-        disabled={!valid}
         className="w-full bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground h-12 font-semibold sticky bottom-2 shadow-lg"
       >
         <Sparkles className="size-4 mr-2" />
         Build our basket
       </Button>
+      {showErrors && !valid && (
+        <p className="text-[11px] text-center text-walmart-blue-dark -mt-2">
+          A few details still need your attention above.
+        </p>
+      )}
     </Screen>
   );
 };

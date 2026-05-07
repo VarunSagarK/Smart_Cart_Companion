@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { Basket, CatalogItem, DemoState, Preferences, PurchaseRecord } from "@/lib/types";
 
 const KEY = "walmart-ai-demo-v3";
@@ -29,19 +29,58 @@ function load(): DemoState {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULT;
-    return { ...DEFAULT, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT,
+      ...parsed,
+      prefs: { ...DEFAULT.prefs, ...(parsed.prefs ?? {}) },
+    };
   } catch {
     return DEFAULT;
   }
 }
 
-/** Single demo-user store. Swap for Supabase later without touching screens. */
-export function useDemoStore() {
-  const [state, setState] = useState<DemoState>(load);
+/* ---------- Module-scoped global store (single source of truth) ---------- */
+let memoryState: DemoState = load();
+const listeners = new Set<() => void>();
 
-  useEffect(() => {
-    localStorage.setItem(KEY, JSON.stringify(state));
-  }, [state]);
+function persist() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(memoryState));
+  } catch { /* ignore quota errors */ }
+}
+
+function emit() {
+  for (const l of listeners) l();
+}
+
+function setState(updater: (s: DemoState) => DemoState) {
+  memoryState = updater(memoryState);
+  persist();
+  emit();
+}
+
+/* Sync across tabs */
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", e => {
+    if (e.key === KEY && e.newValue) {
+      try {
+        memoryState = { ...DEFAULT, ...JSON.parse(e.newValue) };
+        emit();
+      } catch { /* ignore */ }
+    }
+  });
+}
+
+const subscribe = (cb: () => void) => {
+  listeners.add(cb);
+  return () => { listeners.delete(cb); };
+};
+const getSnapshot = () => memoryState;
+
+/* ---------- Public hook ---------- */
+export function useDemoStore() {
+  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   const setPrefs = useCallback((prefs: Preferences) => {
     setState(s => ({ ...s, prefs, onboarded: true }));
@@ -81,6 +120,37 @@ export function useDemoStore() {
     [],
   );
 
+  /** Remove a single line entirely (by item + weekIndex). */
+  const removeLineFromBasket = useCallback((itemId: string, weekIndex?: number) => {
+    setState(s => {
+      if (!s.basket) return s;
+      const lines = s.basket.lines.filter(
+        l => !(l.item.id === itemId && (l.weekIndex ?? 0) === (weekIndex ?? 0)),
+      );
+      if (!lines.length) return { ...s, basket: null };
+      const subtotal = +lines.reduce((n, l) => n + l.item.price * l.qty, 0).toFixed(2);
+      const savings = +lines.reduce((n, l) => n + (l.item.basePrice - l.item.price) * l.qty, 0).toFixed(2);
+      return { ...s, basket: { ...s.basket, lines, subtotal, savings } };
+    });
+  }, []);
+
+  /** Update qty for a line. qty<=0 removes it. */
+  const updateLineQty = useCallback((itemId: string, qty: number, weekIndex?: number) => {
+    setState(s => {
+      if (!s.basket) return s;
+      let lines = s.basket.lines.map(l =>
+        l.item.id === itemId && (l.weekIndex ?? 0) === (weekIndex ?? 0)
+          ? { ...l, qty: Math.max(0, qty) }
+          : l,
+      );
+      lines = lines.filter(l => l.qty > 0);
+      if (!lines.length) return { ...s, basket: null };
+      const subtotal = +lines.reduce((n, l) => n + l.item.price * l.qty, 0).toFixed(2);
+      const savings = +lines.reduce((n, l) => n + (l.item.basePrice - l.item.price) * l.qty, 0).toFixed(2);
+      return { ...s, basket: { ...s.basket, lines, subtotal, savings } };
+    });
+  }, []);
+
   const clearBasket = useCallback(() => {
     setState(s => ({ ...s, basket: null }));
   }, []);
@@ -116,6 +186,8 @@ export function useDemoStore() {
     setPrefs,
     setBasket,
     addItemsToBasket,
+    removeLineFromBasket,
+    updateLineQty,
     clearBasket,
     toggleWishlist,
     recordPurchase,

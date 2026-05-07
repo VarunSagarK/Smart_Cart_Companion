@@ -67,7 +67,7 @@ export type ResultFilter =
   | "organic"
   | "snacks";
 
-export type BudgetSource = "manual" | "ynab" | "mint";
+export type BudgetSource = "manual" | "ynab" | "koho";
 export type PlanDuration = "weekly" | "biweekly" | "monthly";
 
 export interface Household {
@@ -92,6 +92,7 @@ export interface CatalogItem {
   bulk?: boolean;
   tags?: string[];          // diet tags
   cuisines?: FoodTypeId[];  // food-type tags
+  image?: string;           // realistic product image URL
 }
 
 export interface Deal {

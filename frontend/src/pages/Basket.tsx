@@ -6,8 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Screen } from "@/components/Screen";
 import { BasketItemRow } from "@/components/BasketItemRow";
 import { useDemoStore } from "@/hooks/useDemoStore";
+import { BasketLine } from "@/lib/types";
 
 const MOTIVATION_LABELS: Record<string, string> = {
+  "birthday-week": "Birthday Week",
   "budget-friendly": "Budget Friendly",
   "comfort-meals": "Comfort Meals",
   "family-gathering": "Family Gathering",
@@ -17,8 +19,16 @@ const MOTIVATION_LABELS: Record<string, string> = {
   "kids-lunch-prep": "Kids Lunch Prep",
   "meal-prep": "Meal Prep",
   "quick-easy": "Quick & Easy",
+  "special-occasion": "Special Occasion",
+  "student-budget": "Student Budget",
+  "vacation-prep": "Vacation Prep",
   "weekly-essentials": "Weekly Essentials",
 };
+
+const lineSubtotal = (lines: BasketLine[]) =>
+  +lines.reduce((n, l) => n + l.item.price * l.qty, 0).toFixed(2);
+const lineSavings = (lines: BasketLine[]) =>
+  +lines.reduce((n, l) => n + (l.item.basePrice - l.item.price) * l.qty, 0).toFixed(2);
 
 const Basket = () => {
   const nav = useNavigate();
@@ -32,16 +42,17 @@ const Basket = () => {
     [basket],
   );
 
+  const weekCount = duration === "monthly" ? 4 : duration === "biweekly" ? 2 : 1;
+
   const grouped = useMemo(() => {
-    if (!basket || duration === "weekly") return null;
-    const weeks = duration === "monthly" ? 4 : 2;
-    const groups: typeof basket.lines[] = Array.from({ length: weeks }, () => []);
+    if (!basket || weekCount === 1) return null;
+    const groups: BasketLine[][] = Array.from({ length: weekCount }, () => []);
     sorted.forEach(l => {
-      const idx = Math.min(weeks - 1, l.weekIndex ?? 0);
+      const idx = Math.min(weekCount - 1, l.weekIndex ?? 0);
       groups[idx].push(l);
     });
     return groups;
-  }, [basket, duration, sorted]);
+  }, [basket, weekCount, sorted]);
 
   if (!basket || basket.lines.length === 0) {
     return (
@@ -63,9 +74,10 @@ const Basket = () => {
   }
 
   const motivationLabel = motivation ? MOTIVATION_LABELS[motivation] ?? "Weekly Essentials" : "Weekly Essentials";
+  const totalQty = basket.lines.reduce((n, l) => n + l.qty, 0);
 
   return (
-    <Screen title="Cart" subtitle={`${basket.lines.reduce((n, l) => n + l.qty, 0)} items`}>
+    <Screen title="Cart" subtitle={`${totalQty} item${totalQty === 1 ? "" : "s"}`}>
       <Card>
         <CardContent className="p-4 flex justify-between items-baseline">
           <div>
@@ -80,27 +92,52 @@ const Basket = () => {
       </Card>
 
       {grouped ? (
-        grouped.map((lines, i) =>
-          lines.length ? (
-            <Card key={i}>
+        grouped.map((lines, i) => {
+          if (!lines.length) return null;
+          const sub = lineSubtotal(lines);
+          const save = lineSavings(lines);
+          const qty = lines.reduce((n, l) => n + l.qty, 0);
+          return (
+            <Card key={i} className="border-l-4 border-l-walmart-blue">
               <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-bold text-walmart-blue-dark">Week {i + 1}</p>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-sm font-bold text-walmart-blue-dark">
+                    Week {i + 1} <span className="text-muted-foreground font-normal">— {motivationLabel}</span>
+                  </p>
                   <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                    {motivationLabel}
+                    {qty} item{qty === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between mb-2 pb-2 border-b border-border">
+                  <span className="text-xs text-muted-foreground">Section subtotal</span>
+                  <span className="text-sm font-bold text-walmart-blue">
+                    ${sub.toFixed(2)}
+                    {save > 0 && (
+                      <span className="ml-2 text-[11px] font-semibold text-success">
+                        save ${save.toFixed(2)}
+                      </span>
+                    )}
                   </span>
                 </div>
                 {lines.map(l => (
-                  <BasketItemRow key={`${l.item.id}-${i}`} line={l} />
+                  <BasketItemRow key={`${l.item.id}-${l.weekIndex ?? 0}`} line={l} />
                 ))}
               </CardContent>
             </Card>
-          ) : null,
-        )
+          );
+        })
       ) : (
         <Card>
           <CardContent className="p-4">
-            {sorted.map(l => <BasketItemRow key={l.item.id} line={l} />)}
+            <div className="flex items-center justify-between mb-2 pb-2 border-b border-border">
+              <p className="text-sm font-bold text-walmart-blue-dark">
+                This week <span className="text-muted-foreground font-normal">— {motivationLabel}</span>
+              </p>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                {totalQty} item{totalQty === 1 ? "" : "s"}
+              </span>
+            </div>
+            {sorted.map(l => <BasketItemRow key={`${l.item.id}-${l.weekIndex ?? 0}`} line={l} />)}
           </CardContent>
         </Card>
       )}

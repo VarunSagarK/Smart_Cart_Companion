@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, ShoppingCart } from "lucide-react";
+import { Sparkles, ShoppingCart, CheckSquare, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -32,11 +32,13 @@ const Results = () => {
     [basket, filter],
   );
 
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(basket.lines.map(l => l.item.id)));
+  // Items load UNSELECTED — user intentionally selects
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
 
+  // Reset selection when changing strategy (lines change), but keep otherwise
   useEffect(() => {
-    setSelected(new Set(basket.lines.map(l => l.item.id)));
-  }, [strategy]); // eslint-disable-line react-hooks/exhaustive-deps
+    setSelected(new Set());
+  }, [strategy]);
 
   const toggle = (id: string) =>
     setSelected(s => {
@@ -45,10 +47,29 @@ const Results = () => {
       return next;
     });
 
+  // Visible-set selection: how many of currently-filtered are selected
+  const visibleIds = filteredLines.map(l => l.item.id);
+  const visibleSelectedCount = visibleIds.filter(id => selected.has(id)).length;
+  const allVisibleSelected = visibleIds.length > 0 && visibleSelectedCount === visibleIds.length;
+
+  const toggleSelectAll = () => {
+    setSelected(s => {
+      const next = new Set(s);
+      if (allVisibleSelected) {
+        // Deselect every visible item
+        visibleIds.forEach(id => next.delete(id));
+      } else {
+        // Select every visible item
+        visibleIds.forEach(id => next.add(id));
+      }
+      return next;
+    });
+  };
+
   const selectedLines = filteredLines.filter(l => selected.has(l.item.id));
   const subtotal = +selectedLines.reduce((n, l) => n + l.item.price * l.qty, 0).toFixed(2);
   const savings = +selectedLines.reduce((n, l) => n + (l.item.basePrice - l.item.price) * l.qty, 0).toFixed(2);
-  const pct = Math.min(100, (subtotal / basket.budget) * 100);
+  const pct = Math.min(100, basket.budget ? (subtotal / basket.budget) * 100 : 0);
 
   const handleAddToCart = () => {
     if (!selectedLines.length) {
@@ -110,9 +131,29 @@ const Results = () => {
             <span className="text-muted-foreground">Budget ${basket.budget}</span>
             <span className="text-success font-semibold">You save ${savings.toFixed(2)}</span>
           </div>
-          <div className="flex items-center gap-1 pt-1 text-xs text-muted-foreground">
-            <Sparkles className="size-3 text-walmart-blue" />
-            {selected.size} of {filteredLines.length} shown · tap a card to toggle
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Sparkles className="size-3 text-walmart-blue" />
+              {visibleSelectedCount} of {filteredLines.length} selected
+            </span>
+            <button
+              type="button"
+              onClick={toggleSelectAll}
+              disabled={!filteredLines.length}
+              className="flex items-center gap-1 text-xs font-semibold text-walmart-blue hover:text-walmart-blue-dark disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {allVisibleSelected ? (
+                <>
+                  <CheckSquare className="size-3.5" />
+                  Deselect All
+                </>
+              ) : (
+                <>
+                  <Square className="size-3.5" />
+                  Select All
+                </>
+              )}
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -135,10 +176,13 @@ const Results = () => {
 
       <Button
         onClick={handleAddToCart}
-        className="w-full bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground h-12 text-base font-semibold sticky bottom-2 shadow-lg"
+        disabled={selected.size === 0}
+        className="w-full bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground h-12 text-base font-semibold sticky bottom-2 shadow-lg disabled:opacity-60"
       >
         <ShoppingCart className="size-4 mr-2" />
-        Add {selected.size} to Walmart cart
+        {selected.size > 0
+          ? `Add ${selected.size} to Walmart cart`
+          : "Select items to add to cart"}
       </Button>
     </Screen>
   );

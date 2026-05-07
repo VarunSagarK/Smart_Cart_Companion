@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CatalogItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useDemoStore } from "@/hooks/useDemoStore";
+import { ProductImage } from "@/components/ProductImage";
 import { toast } from "sonner";
 
 interface Props {
@@ -12,15 +13,6 @@ interface Props {
   onToggle?: (id: string) => void;
   showCheckbox?: boolean;
 }
-
-const EMOJI: Record<string, string> = {
-  produce: "🥬",
-  dairy: "🥛",
-  pantry: "🥫",
-  snacks: "🍿",
-  beverages: "🥤",
-  protein: "🍗",
-};
 
 export const ProductCard = ({ item, selected, onToggle, showCheckbox = true }: Props) => {
   const { state, addItemsToBasket, toggleWishlist } = useDemoStore();
@@ -74,9 +66,7 @@ export const ProductCard = ({ item, selected, onToggle, showCheckbox = true }: P
           <Tag className="size-2.5" /> Save ${saving.toFixed(2)}
         </Badge>
       )}
-      <div className="aspect-square w-full rounded-md bg-secondary flex items-center justify-center text-5xl">
-        {EMOJI[item.category] ?? "🛒"}
-      </div>
+      <ProductImage item={item} className="aspect-square w-full" />
       <div className="flex items-baseline gap-1">
         <span className="text-base font-bold text-walmart-blue-dark">${item.price.toFixed(2)}</span>
         {onSale && (

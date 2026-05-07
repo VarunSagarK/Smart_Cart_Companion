@@ -3,17 +3,18 @@ import { Search, Sparkles, Tag, ChevronRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Screen } from "@/components/Screen";
+import { ProductImage } from "@/components/ProductImage";
 import { useDemoStore } from "@/hooks/useDemoStore";
 import { CATALOG } from "@/lib/mockCatalog";
 import { buildDashboard } from "@/lib/dashboardEngine";
 
 const DEPARTMENTS = [
-  { name: "Grocery", emoji: "🛒" },
+  { name: "Drinks", emoji: "🥤" },
   { name: "Fresh", emoji: "🥬" },
+  { name: "Grocery", emoji: "🛒" },
+  { name: "Household", emoji: "🧴" },
   { name: "Pantry", emoji: "🥫" },
   { name: "Snacks", emoji: "🍿" },
-  { name: "Drinks", emoji: "🥤" },
-  { name: "Household", emoji: "🧴" },
 ];
 
 const Index = () => {
@@ -112,9 +113,7 @@ const Index = () => {
           {deals.map(d => (
             <Card key={d.id}>
               <CardContent className="p-3">
-                <div className="size-12 rounded bg-secondary flex items-center justify-center text-walmart-blue font-bold text-lg mb-2">
-                  {d.name.charAt(0)}
-                </div>
+                <ProductImage item={d} className="size-16 mb-2" />
                 <p className="text-xs font-medium leading-tight line-clamp-2">{d.name}</p>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-sm font-bold text-walmart-blue">${d.price.toFixed(2)}</span>
