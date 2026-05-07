@@ -124,9 +124,12 @@ const AIOnboarding = () => {
   );
 
   const canNext = useMemo(() => {
-    if (step === 1) return budget >= 20; // budget required
+    if (step === 1) {
+      if (budgetSource !== "manual" && !connected[budgetSource]) return false;
+      return budget >= 20;
+    }
     return true;
-  }, [step, budget]);
+  }, [step, budget, budgetSource, connected]);
 
   const handleFinish = () => {
     const prefs: Preferences = {
