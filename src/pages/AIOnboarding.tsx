@@ -33,6 +33,66 @@ const DIETS: { id: DietId; label: string }[] = [
 
 const STEPS = ["Duration", "Budget", "Household", "Diet", "Junk"] as const;
 
+const IntegrationLogin = ({
+  brand,
+  color,
+  onConnect,
+  onCancel,
+}: {
+  brand: string;
+  color: string;
+  onConnect: () => void;
+  onCancel: () => void;
+}) => {
+  const [email, setEmail] = useState(`demo@${brand.toLowerCase()}.com`);
+  const [pwd, setPwd] = useState("demo1234");
+  const [loading, setLoading] = useState(false);
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => onConnect(), 900);
+  };
+  return (
+    <Card>
+      <CardContent className="p-5 space-y-4">
+        <div className="flex flex-col items-center text-center gap-2">
+          <div
+            className="size-12 rounded-xl flex items-center justify-center text-primary-foreground font-bold text-lg"
+            style={{ backgroundColor: color }}
+          >
+            {brand.charAt(0)}
+          </div>
+          <p className="font-semibold">Sign in to {brand}</p>
+          <p className="text-xs text-muted-foreground">
+            Demo only — credentials are pre-filled and not stored.
+          </p>
+        </div>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="space-y-1">
+            <Label htmlFor="iemail" className="text-xs">Email</Label>
+            <Input id="iemail" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ipwd" className="text-xs">Password</Label>
+            <Input id="ipwd" type="password" value={pwd} onChange={e => setPwd(e.target.value)} />
+          </div>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-11 font-semibold text-primary-foreground"
+            style={{ backgroundColor: color }}
+          >
+            {loading ? "Connecting…" : `Connect ${brand}`}
+          </Button>
+          <Button type="button" variant="ghost" className="w-full" onClick={onCancel}>
+            Use manual entry instead
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
 const AIOnboarding = () => {
   const nav = useNavigate();
   const { state, setPrefs, setBasket } = useDemoStore();
