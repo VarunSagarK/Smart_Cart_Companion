@@ -33,6 +33,66 @@ const DIETS: { id: DietId; label: string }[] = [
 
 const STEPS = ["Duration", "Budget", "Household", "Diet", "Junk"] as const;
 
+const IntegrationLogin = ({
+  brand,
+  color,
+  onConnect,
+  onCancel,
+}: {
+  brand: string;
+  color: string;
+  onConnect: () => void;
+  onCancel: () => void;
+}) => {
+  const [email, setEmail] = useState(`demo@${brand.toLowerCase()}.com`);
+  const [pwd, setPwd] = useState("demo1234");
+  const [loading, setLoading] = useState(false);
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => onConnect(), 900);
+  };
+  return (
+    <Card>
+      <CardContent className="p-5 space-y-4">
+        <div className="flex flex-col items-center text-center gap-2">
+          <div
+            className="size-12 rounded-xl flex items-center justify-center text-primary-foreground font-bold text-lg"
+            style={{ backgroundColor: color }}
+          >
+            {brand.charAt(0)}
+          </div>
+          <p className="font-semibold">Sign in to {brand}</p>
+          <p className="text-xs text-muted-foreground">
+            Demo only — credentials are pre-filled and not stored.
+          </p>
+        </div>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="space-y-1">
+            <Label htmlFor="iemail" className="text-xs">Email</Label>
+            <Input id="iemail" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ipwd" className="text-xs">Password</Label>
+            <Input id="ipwd" type="password" value={pwd} onChange={e => setPwd(e.target.value)} />
+          </div>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-11 font-semibold text-primary-foreground"
+            style={{ backgroundColor: color }}
+          >
+            {loading ? "Connecting…" : `Connect ${brand}`}
+          </Button>
+          <Button type="button" variant="ghost" className="w-full" onClick={onCancel}>
+            Use manual entry instead
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
 const AIOnboarding = () => {
   const nav = useNavigate();
   const { state, setPrefs, setBasket } = useDemoStore();
@@ -45,6 +105,11 @@ const AIOnboarding = () => {
   const [diets, setDiets] = useState<DietId[]>(state.prefs.diets);
   const [avoidJunk, setAvoidJunk] = useState(state.prefs.avoidJunk);
   const [brand, setBrand] = useState(state.prefs.preferredBrand ?? ALL_BRANDS[0]);
+  const [connected, setConnected] = useState<Record<BudgetSource, boolean>>({
+    manual: true,
+    ynab: false,
+    mint: false,
+  });
 
   const toggleDiet = (id: DietId) =>
     setDiets(d => {
@@ -59,9 +124,12 @@ const AIOnboarding = () => {
   );
 
   const canNext = useMemo(() => {
-    if (step === 1) return budget >= 20; // budget required
+    if (step === 1) {
+      if (budgetSource !== "manual" && !connected[budgetSource]) return false;
+      return budget >= 20;
+    }
     return true;
-  }, [step, budget]);
+  }, [step, budget, budgetSource, connected]);
 
   const handleFinish = () => {
     const prefs: Preferences = {
@@ -122,47 +190,64 @@ const AIOnboarding = () => {
                     key={s}
                     onClick={() => setBudgetSource(s)}
                     className={cn(
-                      "rounded-lg border py-3 text-xs font-semibold uppercase transition",
+                      "rounded-lg border py-3 text-xs font-semibold uppercase transition relative",
                       budgetSource === s
                         ? "border-walmart-blue bg-walmart-blue/5 text-walmart-blue"
                         : "border-border bg-background",
                     )}
                   >
                     {s === "manual" ? "Manual" : s.toUpperCase()}
+                    {s !== "manual" && connected[s] && (
+                      <span className="absolute top-1 right-1 size-2 rounded-full bg-success" />
+                    )}
                   </button>
                 ))}
               </div>
-              {budgetSource !== "manual" && (
-                <p className="text-xs text-muted-foreground">
-                  Demo: {budgetSource.toUpperCase()} integration mocked. Enter your budget below to continue.
-                </p>
-              )}
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 space-y-2">
-              <Label htmlFor="b" className="text-sm">
-                {duration === "weekly" ? "Weekly" : "Monthly"} grocery budget
-              </Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input
-                  id="b"
-                  type="number"
-                  min={20}
-                  value={budget}
-                  onChange={e => setBudget(+e.target.value || 0)}
-                  className="pl-7 text-lg font-semibold"
-                />
-              </div>
-              {duration === "monthly" && (
-                <p className="text-xs text-muted-foreground">≈ ${weeklyBudget}/week</p>
-              )}
-              {budget < 20 && (
-                <p className="text-xs text-destructive">Minimum $20 required.</p>
-              )}
-            </CardContent>
-          </Card>
+
+          {budgetSource !== "manual" && !connected[budgetSource] ? (
+            <IntegrationLogin
+              brand={budgetSource === "ynab" ? "YNAB" : "Mint"}
+              color={budgetSource === "ynab" ? "#85B934" : "#00A38B"}
+              onConnect={() => {
+                setConnected(c => ({ ...c, [budgetSource]: true }));
+                // Pretend the integration prefills a recommended budget
+                setBudget(budgetSource === "ynab" ? 120 : 110);
+              }}
+              onCancel={() => setBudgetSource("manual")}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-4 space-y-2">
+                {budgetSource !== "manual" && (
+                  <p className="text-xs text-success font-semibold">
+                    ✓ Connected to {budgetSource.toUpperCase()} — budget pre-filled
+                  </p>
+                )}
+                <Label htmlFor="b" className="text-sm">
+                  {duration === "weekly" ? "Weekly" : "Monthly"} grocery budget
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input
+                    id="b"
+                    type="number"
+                    min={20}
+                    value={budget}
+                    onChange={e => setBudget(+e.target.value || 0)}
+                    className="pl-7 text-lg font-semibold"
+                  />
+                </div>
+                {duration === "monthly" && (
+                  <p className="text-xs text-muted-foreground">≈ ${weeklyBudget}/week</p>
+                )}
+                {budget < 20 && (
+                  <p className="text-xs text-destructive">Minimum $20 required.</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
 

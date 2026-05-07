@@ -29,26 +29,36 @@ const Index = () => {
         <Search className="size-4" /> Search Walmart
       </Link>
 
-      {/* AI hero — the only "new" surface introduced */}
-      <Card className="bg-walmart-blue text-primary-foreground border-0 overflow-hidden">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-2 text-walmart-yellow text-xs font-semibold uppercase tracking-wide">
-            <Sparkles className="size-4" /> New · AI
-          </div>
-          <h2 className="text-xl font-bold mt-2 leading-snug">
-            Plan groceries that fit your budget
-          </h2>
-          <p className="text-sm text-white/80 mt-1">
-            Tell us your budget. We'll build a basket from this week's deals.
-          </p>
-          <Button
-            asChild
-            className="mt-4 bg-walmart-yellow text-walmart-blue-dark hover:bg-walmart-yellow/90 font-semibold"
-          >
-            <Link to="/ai">{state.onboarded ? "Open AI Planner" : "Try the AI Planner"}</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      {/* AI hero — emphasized entry to AI grocery planner */}
+      <Link to="/ai" className="block">
+        <Card className="bg-gradient-to-br from-walmart-blue to-walmart-blue-dark text-primary-foreground border-0 overflow-hidden shadow-lg relative">
+          <div className="absolute -right-6 -top-6 size-32 rounded-full bg-walmart-yellow/20 blur-2xl" />
+          <CardContent className="p-5 relative">
+            <div className="flex items-center gap-2 text-walmart-yellow text-xs font-bold uppercase tracking-wider">
+              <span className="relative flex size-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-walmart-yellow opacity-75" />
+                <span className="relative inline-flex rounded-full size-2 bg-walmart-yellow" />
+              </span>
+              <Sparkles className="size-4" /> New · AI Grocery Planner
+            </div>
+            <h2 className="text-xl font-bold mt-2 leading-snug">
+              Plan groceries that fit your budget
+            </h2>
+            <p className="text-sm text-white/85 mt-1">
+              Tell us your budget. We'll build a basket from this week's deals.
+            </p>
+            <Button
+              asChild
+              className="mt-4 bg-walmart-yellow text-walmart-blue-dark hover:bg-walmart-yellow/90 font-bold w-full h-11"
+            >
+              <Link to="/ai">
+                <Sparkles className="size-4 mr-1" />
+                {state.onboarded ? "Open AI Planner" : "Start AI Planner"}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </Link>
 
       {/* Departments */}
       <div>
