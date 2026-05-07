@@ -1,108 +1,218 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Progress } from "@/components/ui/progress";
 import { Screen } from "@/components/Screen";
 import { useDemoStore } from "@/hooks/useDemoStore";
 import { buildAllStrategies } from "@/lib/budgetEngine";
-import { ALL_BRANDS, CATALOG } from "@/lib/mockCatalog";
-import { BudgetSource, DietId, PlanDuration, Preferences } from "@/lib/types";
+import { ALL_BRANDS, CATALOG, KITCHEN_BASICS } from "@/lib/mockCatalog";
+import {
+  BudgetSource,
+  DietId,
+  FoodTypeId,
+  Household,
+  MotivationId,
+  PlanDuration,
+  Preferences,
+} from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const DIETS: { id: DietId; label: string }[] = [
-  { id: "vegetarian", label: "Vegetarian" },
-  { id: "vegan", label: "Vegan" },
-  { id: "high-protein", label: "High Protein" },
-  { id: "keto", label: "Keto" },
-  { id: "low-carb", label: "Low Carb" },
-  { id: "gluten-free", label: "Gluten-Free" },
+  { id: "budget-saver", label: "Budget Saver" },
   { id: "dairy-free", label: "Dairy-Free" },
-  { id: "halal", label: "Halal" },
-  { id: "kosher", label: "Kosher" },
   { id: "diabetic-friendly", label: "Diabetic-Friendly" },
   { id: "family-essentials", label: "Family Essentials" },
-  { id: "budget-saver", label: "Budget Saver" },
-  { id: "organic-preferred", label: "Organic Preferred" },
+  { id: "gluten-free", label: "Gluten-Free" },
+  { id: "halal", label: "Halal" },
+  { id: "high-protein", label: "High Protein" },
+  { id: "keto", label: "Keto" },
+  { id: "kosher", label: "Kosher" },
+  { id: "low-carb", label: "Low Carb" },
   { id: "no-preference", label: "No Preference" },
+  { id: "organic-preferred", label: "Organic Preferred" },
+  { id: "vegan", label: "Vegan" },
+  { id: "vegetarian", label: "Vegetarian" },
 ];
 
-const STEPS = ["Duration", "Budget", "Household", "Diet", "Junk"] as const;
+const FOOD_TYPES: { id: FoodTypeId; label: string }[] = [
+  { id: "american", label: "American" },
+  { id: "asian", label: "Asian" },
+  { id: "chinese", label: "Chinese" },
+  { id: "comfort", label: "Comfort Foods" },
+  { id: "frozen", label: "Frozen Foods" },
+  { id: "indian", label: "Indian" },
+  { id: "italian", label: "Italian" },
+  { id: "mediterranean", label: "Mediterranean" },
+  { id: "mexican", label: "Mexican" },
+  { id: "middle-eastern", label: "Middle Eastern" },
+  { id: "organic", label: "Organic" },
+  { id: "quick-meals", label: "Quick Meals" },
+  { id: "seafood", label: "Seafood" },
+  { id: "snacks", label: "Snacks" },
+  { id: "vegetarian-comfort", label: "Vegetarian Comfort Foods" },
+];
 
+const MOTIVATIONS: { id: MotivationId; label: string }[] = [
+  { id: "birthday-week", label: "Birthday Week" },
+  { id: "budget-friendly", label: "Budget Friendly" },
+  { id: "comfort-meals", label: "Comfort Meals" },
+  { id: "family-gathering", label: "Family Gathering" },
+  { id: "fitness-goals", label: "Fitness Goals" },
+  { id: "health-conscious", label: "Health Conscious" },
+  { id: "high-protein", label: "High Protein" },
+  { id: "kids-lunch-prep", label: "Kids Lunch Prep" },
+  { id: "meal-prep", label: "Meal Prep" },
+  { id: "quick-easy", label: "Quick & Easy Meals" },
+  { id: "special-occasion", label: "Special Occasion" },
+  { id: "student-budget", label: "Student Budget" },
+  { id: "vacation-prep", label: "Vacation Prep" },
+  { id: "weekly-essentials", label: "Weekly Essentials" },
+];
+
+/** ---------- Section helpers ---------- */
+const Section = ({
+  step,
+  title,
+  hint,
+  children,
+}: {
+  step: number;
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) => (
+  <Card>
+    <CardContent className="p-4 space-y-3">
+      <div className="flex items-start gap-2">
+        <span className="size-6 shrink-0 rounded-full bg-walmart-blue/10 text-walmart-blue text-xs font-bold flex items-center justify-center mt-0.5">
+          {step}
+        </span>
+        <div>
+          <p className="text-sm font-semibold">{title}</p>
+          {hint && <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>}
+        </div>
+      </div>
+      <div>{children}</div>
+    </CardContent>
+  </Card>
+);
+
+const Chip = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={cn(
+      "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+      active
+        ? "bg-walmart-blue text-primary-foreground border-walmart-blue"
+        : "bg-background text-foreground border-border hover:bg-secondary",
+    )}
+  >
+    {children}
+  </button>
+);
+
+/** ---------- Lightweight integration login mocks ---------- */
 const IntegrationLogin = ({
   brand,
   color,
+  connected,
   onConnect,
-  onCancel,
 }: {
   brand: string;
   color: string;
+  connected: boolean;
   onConnect: () => void;
-  onCancel: () => void;
 }) => {
+  const [open, setOpen] = useState(false);
   const [email, setEmail] = useState(`demo@${brand.toLowerCase()}.com`);
   const [pwd, setPwd] = useState("demo1234");
   const [loading, setLoading] = useState(false);
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => onConnect(), 900);
-  };
-  return (
-    <Card>
-      <CardContent className="p-5 space-y-4">
-        <div className="flex flex-col items-center text-center gap-2">
-          <div
-            className="size-12 rounded-xl flex items-center justify-center text-primary-foreground font-bold text-lg"
-            style={{ backgroundColor: color }}
-          >
-            {brand.charAt(0)}
-          </div>
-          <p className="font-semibold">Sign in to {brand}</p>
-          <p className="text-xs text-muted-foreground">
-            Demo only — credentials are pre-filled and not stored.
-          </p>
+
+  if (connected) {
+    return (
+      <div className="rounded-lg border border-success/40 bg-success/5 p-3 text-xs flex items-center justify-between">
+        <span className="font-semibold text-success">✓ Connected to {brand}</span>
+        <span className="text-muted-foreground">grocery budget pre-filled</span>
+      </div>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="w-full flex items-center gap-3 rounded-lg border border-border bg-background hover:bg-secondary transition p-3 text-left"
+      >
+        <span
+          className="size-9 rounded-md flex items-center justify-center text-primary-foreground text-sm font-bold"
+          style={{ backgroundColor: color }}
+        >
+          {brand.charAt(0)}
+        </span>
+        <div className="flex-1">
+          <p className="text-sm font-semibold">Connect {brand}</p>
+          <p className="text-[11px] text-muted-foreground">Pull your grocery budget automatically</p>
         </div>
-        <form onSubmit={submit} className="space-y-3">
-          <div className="space-y-1">
-            <Label htmlFor="iemail" className="text-xs">Email</Label>
-            <Input id="iemail" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="ipwd" className="text-xs">Password</Label>
-            <Input id="ipwd" type="password" value={pwd} onChange={e => setPwd(e.target.value)} />
-          </div>
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-11 font-semibold text-primary-foreground"
-            style={{ backgroundColor: color }}
-          >
-            {loading ? "Connecting…" : `Connect ${brand}`}
-          </Button>
-          <Button type="button" variant="ghost" className="w-full" onClick={onCancel}>
-            Use manual entry instead
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <span className="text-xs font-semibold text-walmart-blue">Sign in</span>
+      </button>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        setLoading(true);
+        setTimeout(() => {
+          setLoading(false);
+          setOpen(false);
+          onConnect();
+        }, 700);
+      }}
+      className="rounded-lg border border-border p-3 space-y-2 bg-secondary/40"
+    >
+      <p className="text-xs font-semibold">Sign in to {brand}</p>
+      <Input value={email} onChange={e => setEmail(e.target.value)} className="h-9 text-sm" />
+      <Input type="password" value={pwd} onChange={e => setPwd(e.target.value)} className="h-9 text-sm" />
+      <div className="flex gap-2">
+        <Button type="button" variant="ghost" size="sm" className="flex-1" onClick={() => setOpen(false)}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          disabled={loading}
+          className="flex-1 text-primary-foreground"
+          style={{ backgroundColor: color }}
+        >
+          {loading ? "Connecting…" : "Connect"}
+        </Button>
+      </div>
+    </form>
   );
 };
 
+/** ---------- Main page ---------- */
 const AIOnboarding = () => {
   const nav = useNavigate();
   const { state, setPrefs, setBasket } = useDemoStore();
-  const [step, setStep] = useState(0);
 
   const [duration, setDuration] = useState<PlanDuration>(state.prefs.duration);
   const [budgetSource, setBudgetSource] = useState<BudgetSource>(state.prefs.budgetSource);
-  const [budget, setBudget] = useState<number>(state.prefs.weeklyBudget);
-  const [household, setHousehold] = useState(state.prefs.household);
+  const [budget, setBudget] = useState<number>(state.prefs.rawBudget ?? state.prefs.weeklyBudget);
+  const [hh, setHh] = useState<Household>(
+    state.prefs.householdBreakdown ?? { adults: 2, seniors: 0, kids: 0 },
+  );
   const [diets, setDiets] = useState<DietId[]>(state.prefs.diets);
+  const [foodTypes, setFoodTypes] = useState<FoodTypeId[]>(state.prefs.foodTypes ?? []);
+  const [motivation, setMotivation] = useState<MotivationId>(state.prefs.motivation ?? "weekly-essentials");
+  const [kitchenHave, setKitchenHave] = useState<string[]>(state.prefs.kitchenHave ?? []);
   const [avoidJunk, setAvoidJunk] = useState(state.prefs.avoidJunk);
   const [brand, setBrand] = useState(state.prefs.preferredBrand ?? ALL_BRANDS[0]);
   const [connected, setConnected] = useState<Record<BudgetSource, boolean>>({
@@ -117,230 +227,275 @@ const AIOnboarding = () => {
       const without = d.filter(x => x !== "no-preference");
       return without.includes(id) ? without.filter(x => x !== id) : [...without, id];
     });
+  const toggleFood = (id: FoodTypeId) =>
+    setFoodTypes(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]));
+  const toggleHave = (id: string) =>
+    setKitchenHave(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]));
 
-  const weeklyBudget = useMemo(
-    () => (duration === "monthly" ? +(budget / 4).toFixed(2) : budget),
-    [budget, duration],
-  );
+  const weeks = duration === "monthly" ? 4 : duration === "biweekly" ? 2 : 1;
+  const weeklyBudget = useMemo(() => +(budget / weeks).toFixed(2), [budget, weeks]);
+  const totalPeople = hh.adults + hh.seniors + hh.kids;
 
-  const canNext = useMemo(() => {
-    if (step === 1) {
-      if (budgetSource !== "manual" && !connected[budgetSource]) return false;
-      return budget >= 20;
-    }
-    return true;
-  }, [step, budget, budgetSource, connected]);
+  const valid = budget >= 20 && totalPeople >= 1 && (budgetSource === "manual" || connected[budgetSource]);
 
   const handleFinish = () => {
     const prefs: Preferences = {
       duration,
       budgetSource,
       weeklyBudget,
-      household,
+      rawBudget: budget,
+      household: totalPeople,
+      householdBreakdown: hh,
       diets,
+      foodTypes,
+      motivation,
+      kitchenHave,
       avoidJunk,
       preferredBrand: brand,
     };
     setPrefs(prefs);
-    // Pre-build healthiest basket for results page
     const all = buildAllStrategies(prefs, CATALOG);
     setBasket(all.healthiest);
     nav("/results");
   };
 
-  const next = () => (step === STEPS.length - 1 ? handleFinish() : setStep(s => s + 1));
-  const prev = () => setStep(s => Math.max(0, s - 1));
-
   return (
-    <Screen title="AI Grocery Planner" subtitle={`Step ${step + 1} of ${STEPS.length} · ${STEPS[step]}`}>
-      <Progress value={((step + 1) / STEPS.length) * 100} className="h-1" />
+    <Screen
+      title="AI Grocery Planner"
+      back
+      subtitle="Let's plan groceries together"
+    >
+      {/* Friendly intro */}
+      <Card className="bg-gradient-to-br from-walmart-blue to-walmart-blue-dark text-primary-foreground border-0">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Sparkles className="size-5 text-walmart-yellow mt-0.5" />
+          <div>
+            <p className="font-bold">Hi! Let's build this week's basket together.</p>
+            <p className="text-xs text-white/85 mt-1">
+              A few quick details and we'll match your budget with this week's deals.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
-      {step === 0 && (
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <p className="text-sm font-semibold">How long should we plan for?</p>
-            <div className="grid grid-cols-2 gap-2">
-              {(["weekly", "monthly"] as PlanDuration[]).map(d => (
-                <button
-                  key={d}
-                  onClick={() => setDuration(d)}
-                  className={cn(
-                    "rounded-lg border p-4 text-sm font-semibold capitalize transition",
-                    duration === d
-                      ? "border-walmart-blue bg-walmart-blue/5 text-walmart-blue"
-                      : "border-border bg-background",
-                  )}
-                >
-                  {d}
-                </button>
-              ))}
+      {/* 1 — Duration */}
+      <Section step={1} title="How long are we planning for?" hint="Pick the rhythm that fits your household.">
+        <div className="grid grid-cols-3 gap-2">
+          {(["weekly", "biweekly", "monthly"] as PlanDuration[]).map(d => (
+            <button
+              key={d}
+              onClick={() => setDuration(d)}
+              className={cn(
+                "rounded-lg border py-3 text-xs font-semibold capitalize transition",
+                duration === d ? "border-walmart-blue bg-walmart-blue/5 text-walmart-blue" : "border-border bg-background",
+              )}
+            >
+              {d === "biweekly" ? "Bi-weekly" : d}
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      {/* 2 — Budget */}
+      <Section step={2} title="Where should we get our budget from?" hint="Manual works great. Connect YNAB or Mint to pull a recommended grocery budget.">
+        <div className="space-y-2">
+          {/* Manual */}
+          <button
+            type="button"
+            onClick={() => setBudgetSource("manual")}
+            className={cn(
+              "w-full flex items-center gap-3 rounded-lg border p-3 text-left transition",
+              budgetSource === "manual"
+                ? "border-walmart-blue bg-walmart-blue/5"
+                : "border-border bg-background hover:bg-secondary",
+            )}
+          >
+            <span className="size-9 rounded-md bg-walmart-blue text-primary-foreground flex items-center justify-center text-sm font-bold">$</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Manual Entry</p>
+              <p className="text-[11px] text-muted-foreground">Set a grocery budget yourself</p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            {budgetSource === "manual" && <span className="text-xs font-semibold text-walmart-blue">Selected</span>}
+          </button>
 
-      {step === 1 && (
-        <>
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <p className="text-sm font-semibold">Where should we get your budget?</p>
-              <div className="grid grid-cols-3 gap-2">
-                {(["manual", "ynab", "mint"] as BudgetSource[]).map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setBudgetSource(s)}
-                    className={cn(
-                      "rounded-lg border py-3 text-xs font-semibold uppercase transition relative",
-                      budgetSource === s
-                        ? "border-walmart-blue bg-walmart-blue/5 text-walmart-blue"
-                        : "border-border bg-background",
-                    )}
-                  >
-                    {s === "manual" ? "Manual" : s.toUpperCase()}
-                    {s !== "manual" && connected[s] && (
-                      <span className="absolute top-1 right-1 size-2 rounded-full bg-success" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {budgetSource !== "manual" && !connected[budgetSource] ? (
+          {/* YNAB */}
+          <div onClick={() => setBudgetSource("ynab")}>
             <IntegrationLogin
-              brand={budgetSource === "ynab" ? "YNAB" : "Mint"}
-              color={budgetSource === "ynab" ? "#85B934" : "#00A38B"}
+              brand="YNAB"
+              color="#85B934"
+              connected={connected.ynab}
               onConnect={() => {
-                setConnected(c => ({ ...c, [budgetSource]: true }));
-                // Pretend the integration prefills a recommended budget
-                setBudget(budgetSource === "ynab" ? 120 : 110);
+                setConnected(c => ({ ...c, ynab: true }));
+                setBudgetSource("ynab");
+                setBudget(120 * weeks);
               }}
-              onCancel={() => setBudgetSource("manual")}
             />
-          ) : (
-            <Card>
-              <CardContent className="p-4 space-y-2">
-                {budgetSource !== "manual" && (
-                  <p className="text-xs text-success font-semibold">
-                    ✓ Connected to {budgetSource.toUpperCase()} — budget pre-filled
-                  </p>
-                )}
-                <Label htmlFor="b" className="text-sm">
-                  {duration === "weekly" ? "Weekly" : "Monthly"} grocery budget
-                </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                  <Input
-                    id="b"
-                    type="number"
-                    min={20}
-                    value={budget}
-                    onChange={e => setBudget(+e.target.value || 0)}
-                    className="pl-7 text-lg font-semibold"
-                  />
-                </div>
-                {duration === "monthly" && (
-                  <p className="text-xs text-muted-foreground">≈ ${weeklyBudget}/week</p>
-                )}
-                {budget < 20 && (
-                  <p className="text-xs text-destructive">Minimum $20 required.</p>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
+          </div>
 
-      {step === 2 && (
-        <Card>
-          <CardContent className="p-4 space-y-2">
-            <Label htmlFor="hh" className="text-sm">Household size</Label>
-            <Input
-              id="hh"
-              type="number"
-              min={1}
-              max={10}
-              value={household}
-              onChange={e => setHousehold(+e.target.value || 1)}
+          {/* Mint */}
+          <div onClick={() => setBudgetSource("mint")}>
+            <IntegrationLogin
+              brand="Mint"
+              color="#00A38B"
+              connected={connected.mint}
+              onConnect={() => {
+                setConnected(c => ({ ...c, mint: true }));
+                setBudgetSource("mint");
+                setBudget(110 * weeks);
+              }}
             />
-            <p className="text-xs text-muted-foreground">We'll scale quantities accordingly.</p>
-          </CardContent>
-        </Card>
-      )}
+          </div>
 
-      {step === 3 && (
-        <>
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <p className="text-sm font-semibold">Dietary preferences</p>
-              <div className="flex flex-wrap gap-2">
-                {DIETS.map(d => {
-                  const active = diets.includes(d.id);
-                  return (
-                    <button
-                      key={d.id}
-                      onClick={() => toggleDiet(d.id)}
-                      className={cn(
-                        "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-                        active
-                          ? "bg-walmart-blue text-primary-foreground border-walmart-blue"
-                          : "bg-background text-foreground border-border hover:bg-secondary",
-                      )}
-                    >
-                      {d.label}
-                    </button>
-                  );
-                })}
+          {/* Always show the budget input — required if no integration connected */}
+          <div className="rounded-lg border border-border p-3 space-y-1.5 bg-card">
+            <Label htmlFor="b" className="text-xs font-semibold">
+              {duration === "weekly" ? "Weekly" : duration === "biweekly" ? "Bi-weekly" : "Monthly"} grocery budget
+            </Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+              <Input
+                id="b"
+                type="number"
+                min={20}
+                value={budget}
+                onChange={e => setBudget(+e.target.value || 0)}
+                className="pl-7 text-lg font-semibold"
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              ≈ ${weeklyBudget}/week · for {weeks} week{weeks > 1 ? "s" : ""}
+            </p>
+            {budget < 20 && <p className="text-xs text-destructive">Minimum $20 required.</p>}
+          </div>
+        </div>
+      </Section>
+
+      {/* 3 — Household */}
+      <Section step={3} title="How many people are we shopping for?" hint="We use this to estimate quantities and nutrition.">
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { k: "adults" as const, label: "Adults" },
+            { k: "seniors" as const, label: "Seniors" },
+            { k: "kids" as const, label: "Kids" },
+          ].map(({ k, label }) => (
+            <div key={k} className="rounded-lg border border-border p-2">
+              <Label className="text-[11px] text-muted-foreground">{label}</Label>
+              <Input
+                type="number"
+                min={0}
+                max={10}
+                value={hh[k]}
+                onChange={e => setHh(h => ({ ...h, [k]: Math.max(0, +e.target.value || 0) }))}
+                className="h-9 text-base font-semibold mt-1"
+              />
+            </div>
+          ))}
+        </div>
+        {(hh.kids > 0 || hh.seniors > 0) && (
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            {hh.kids > 0 && (
+              <div>
+                <Label className="text-[11px] text-muted-foreground">Kids ages (optional)</Label>
+                <Input placeholder="e.g. 4, 9" value={hh.kidsAges ?? ""} onChange={e => setHh(h => ({ ...h, kidsAges: e.target.value }))} className="h-9 text-sm mt-1" />
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 space-y-2">
-              <Label className="text-sm">Preferred brand (optional)</Label>
-              <select
-                value={brand}
-                onChange={e => setBrand(e.target.value)}
-                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                {ALL_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
-              </select>
-            </CardContent>
-          </Card>
-        </>
-      )}
+            )}
+            {hh.seniors > 0 && (
+              <div>
+                <Label className="text-[11px] text-muted-foreground">Seniors ages (optional)</Label>
+                <Input placeholder="e.g. 68, 72" value={hh.seniorsAges ?? ""} onChange={e => setHh(h => ({ ...h, seniorsAges: e.target.value }))} className="h-9 text-sm mt-1" />
+              </div>
+            )}
+          </div>
+        )}
+        {totalPeople < 1 && <p className="text-xs text-destructive mt-2">Add at least one person.</p>}
+      </Section>
 
-      {step === 4 && (
-        <Card>
-          <CardContent className="p-4 flex items-center justify-between">
+      {/* 4 — Food Types */}
+      <Section step={4} title="What kind of foods do we enjoy most?" hint="Pick a few to shape grocery suggestions.">
+        <div className="flex flex-wrap gap-2">
+          {FOOD_TYPES.map(f => (
+            <Chip key={f.id} active={foodTypes.includes(f.id)} onClick={() => toggleFood(f.id)}>{f.label}</Chip>
+          ))}
+        </div>
+      </Section>
+
+      {/* 5 — Diets */}
+      <Section step={5} title="Any dietary preferences?" hint="Multi-select. Use 'No Preference' to skip.">
+        <div className="flex flex-wrap gap-2">
+          {DIETS.map(d => (
+            <Chip key={d.id} active={diets.includes(d.id)} onClick={() => toggleDiet(d.id)}>{d.label}</Chip>
+          ))}
+        </div>
+      </Section>
+
+      {/* 6 — Motivation */}
+      <Section step={6} title="What are we focusing on this time?" hint="We'll prioritize items that match.">
+        <select
+          value={motivation}
+          onChange={e => setMotivation(e.target.value as MotivationId)}
+          className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          {MOTIVATIONS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+        </select>
+      </Section>
+
+      {/* 7 — Kitchen Have */}
+      <Section step={7} title="What do we already have in our kitchen?" hint="Helps us avoid duplicate purchases.">
+        <div className="grid grid-cols-4 gap-2">
+          {KITCHEN_BASICS.map(k => {
+            const active = kitchenHave.includes(k.id);
+            return (
+              <button
+                key={k.id}
+                type="button"
+                onClick={() => toggleHave(k.id)}
+                className={cn(
+                  "aspect-square rounded-lg border flex flex-col items-center justify-center gap-1 p-1 transition text-center",
+                  active ? "border-walmart-blue bg-walmart-blue/5" : "border-border bg-background",
+                )}
+              >
+                <span className="text-2xl leading-none">{k.emoji}</span>
+                <span className="text-[10px] font-medium leading-tight">{k.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* 8 — Junk + Brand */}
+      <Section step={8} title="A couple of finishing touches" hint="">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
             <div>
               <p className="text-sm font-medium">Avoid junk food</p>
-              <p className="text-xs text-muted-foreground">Hide soda, chips, cookies.</p>
+              <p className="text-xs text-muted-foreground">
+                {avoidJunk ? "We'll filter out soda, chips, cookies." : "Snacks and treats will be included."}
+              </p>
             </div>
             <Switch checked={avoidJunk} onCheckedChange={setAvoidJunk} />
-          </CardContent>
-        </Card>
-      )}
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Preferred brand (optional)</Label>
+            <select
+              value={brand}
+              onChange={e => setBrand(e.target.value)}
+              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm mt-1"
+            >
+              {ALL_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+        </div>
+      </Section>
 
-      <div className="flex gap-2 pt-2">
-        {step > 0 && (
-          <Button variant="outline" onClick={prev} className="flex-1">
-            <ChevronLeft className="size-4 mr-1" /> Back
-          </Button>
-        )}
-        <Button
-          onClick={next}
-          disabled={!canNext}
-          className="flex-1 bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground h-11 font-semibold"
-        >
-          {step === STEPS.length - 1 ? (
-            <>
-              <Sparkles className="size-4 mr-1" /> Build My Basket
-            </>
-          ) : (
-            <>Next <ChevronRight className="size-4 ml-1" /></>
-          )}
-        </Button>
-      </div>
+      {/* Submit */}
+      <Button
+        onClick={handleFinish}
+        disabled={!valid}
+        className="w-full bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground h-12 font-semibold sticky bottom-2 shadow-lg"
+      >
+        <Sparkles className="size-4 mr-2" />
+        Build our basket
+      </Button>
     </Screen>
   );
 };

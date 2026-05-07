@@ -1,20 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
-import { Basket, DemoState, Preferences, PurchaseRecord } from "@/lib/types";
+import { Basket, CatalogItem, DemoState, Preferences, PurchaseRecord } from "@/lib/types";
 
-const KEY = "walmart-ai-demo-v2";
+const KEY = "walmart-ai-demo-v3";
 
 const DEFAULT: DemoState = {
   prefs: {
     duration: "weekly",
     budgetSource: "manual",
     weeklyBudget: 100,
+    rawBudget: 100,
     household: 2,
+    householdBreakdown: { adults: 2, seniors: 0, kids: 0 },
     diets: [],
+    foodTypes: [],
+    motivation: "weekly-essentials",
+    kitchenHave: [],
     avoidJunk: true,
     preferredBrand: "Great Value",
   },
   basket: null,
   history: [],
+  wishlist: [],
   onboarded: false,
 };
 
@@ -45,29 +51,45 @@ export function useDemoStore() {
     setState(s => ({ ...s, basket }));
   }, []);
 
-  const addItemsToBasket = useCallback((items: import("@/lib/types").CatalogItem[]) => {
-    if (!items.length) return;
-    setState(s => {
-      const existing = s.basket;
-      const baseLines = existing?.lines ?? [];
-      const map = new Map(baseLines.map(l => [l.item.id, { ...l }]));
-      for (const item of items) {
-        const cur = map.get(item.id);
-        if (cur) cur.qty += 1;
-        else map.set(item.id, { item, qty: 1 });
-      }
-      const lines = Array.from(map.values());
-      const subtotal = +lines.reduce((n, l) => n + l.item.price * l.qty, 0).toFixed(2);
-      const savings = +lines.reduce((n, l) => n + (l.item.basePrice - l.item.price) * l.qty, 0).toFixed(2);
-      const basket: Basket = {
-        lines,
-        subtotal,
-        savings,
-        budget: existing?.budget ?? s.prefs.weeklyBudget,
-        strategy: existing?.strategy ?? "healthiest",
-      };
-      return { ...s, basket };
-    });
+  /** Add items (with optional weekIndex assignment) to the persistent cart. */
+  const addItemsToBasket = useCallback(
+    (items: CatalogItem[], weekIndex?: number) => {
+      if (!items.length) return;
+      setState(s => {
+        const existing = s.basket;
+        const baseLines = existing?.lines ?? [];
+        const map = new Map(baseLines.map(l => [`${l.item.id}-${l.weekIndex ?? 0}`, { ...l }]));
+        for (const item of items) {
+          const k = `${item.id}-${weekIndex ?? 0}`;
+          const cur = map.get(k);
+          if (cur) cur.qty += 1;
+          else map.set(k, { item, qty: 1, weekIndex });
+        }
+        const lines = Array.from(map.values());
+        const subtotal = +lines.reduce((n, l) => n + l.item.price * l.qty, 0).toFixed(2);
+        const savings = +lines.reduce((n, l) => n + (l.item.basePrice - l.item.price) * l.qty, 0).toFixed(2);
+        const basket: Basket = {
+          lines,
+          subtotal,
+          savings,
+          budget: existing?.budget ?? s.prefs.weeklyBudget,
+          strategy: existing?.strategy ?? "healthiest",
+        };
+        return { ...s, basket };
+      });
+    },
+    [],
+  );
+
+  const clearBasket = useCallback(() => {
+    setState(s => ({ ...s, basket: null }));
+  }, []);
+
+  const toggleWishlist = useCallback((id: string) => {
+    setState(s => ({
+      ...s,
+      wishlist: s.wishlist.includes(id) ? s.wishlist.filter(x => x !== id) : [...s.wishlist, id],
+    }));
   }, []);
 
   const recordPurchase = useCallback((basket: Basket) => {
@@ -86,5 +108,16 @@ export function useDemoStore() {
     return rec;
   }, []);
 
-  return { state, setPrefs, setBasket, addItemsToBasket, recordPurchase };
+  const cartCount = state.basket?.lines.reduce((n, l) => n + l.qty, 0) ?? 0;
+
+  return {
+    state,
+    cartCount,
+    setPrefs,
+    setBasket,
+    addItemsToBasket,
+    clearBasket,
+    toggleWishlist,
+    recordPurchase,
+  };
 }

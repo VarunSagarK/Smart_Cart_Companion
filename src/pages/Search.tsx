@@ -52,7 +52,7 @@ const SearchPage = () => {
       </div>
 
       {selected.size > 0 && (
-        <div className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-walmart-blue text-primary-foreground flex items-center justify-between">
+        <div className="sticky top-2 z-20 -mx-4 px-4 py-2 bg-walmart-blue text-primary-foreground flex items-center justify-between rounded-md mx-2 shadow-md">
           <span className="text-sm font-semibold">{selected.size} selected</span>
           <Button
             size="sm"
