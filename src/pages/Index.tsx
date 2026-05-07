@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { Search, Sparkles, Tag, ChevronRight } from "lucide-react";
+import { Search, Sparkles, Tag, ChevronRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Screen } from "@/components/Screen";
 import { useDemoStore } from "@/hooks/useDemoStore";
 import { CATALOG } from "@/lib/mockCatalog";
+import { buildDashboard } from "@/lib/dashboardEngine";
 
 const DEPARTMENTS = [
   { name: "Grocery", emoji: "🛒" },
