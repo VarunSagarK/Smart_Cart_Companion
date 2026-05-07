@@ -15,12 +15,28 @@ import {
  * but rank items differently. Swap mockCatalog for live APIs later.
  */
 
+/** Hard exclusions — lifestyle / religious / allergy. Item MUST satisfy all. */
+const HARD_DIETS: DietId[] = [
+  "vegan", "vegetarian", "dairy-free", "gluten-free", "halal", "kosher",
+];
+/** Soft preferences — only boost rank, never exclude. */
+const SOFT_DIETS: DietId[] = [
+  "keto", "low-carb", "high-protein", "diabetic-friendly",
+  "organic-preferred", "family-essentials", "budget-saver",
+];
+
 function passesDiets(item: CatalogItem, diets: DietId[]): boolean {
   if (!diets.length || diets.includes("no-preference")) return true;
-  return diets.every(d => {
-    if (d === "no-preference" || d === "family-essentials" || d === "budget-saver" || d === "organic-preferred") return true;
-    return item.tags?.includes(d);
-  });
+  // Only enforce hard diets — every selected hard diet must be satisfied.
+  const hardSelected = diets.filter(d => HARD_DIETS.includes(d));
+  return hardSelected.every(d => item.tags?.includes(d));
+}
+
+function softDietBoost(item: CatalogItem, diets: DietId[]): number {
+  if (!diets.length || diets.includes("no-preference")) return 0;
+  const softSelected = diets.filter(d => SOFT_DIETS.includes(d));
+  // 1.5 per matched soft tag (e.g. high-protein, organic-preferred).
+  return softSelected.reduce((n, d) => n + (item.tags?.includes(d) ? 1.5 : 0), 0);
 }
 
 function passesFoodTypes(item: CatalogItem, types?: Preferences["foodTypes"]): boolean {
@@ -63,6 +79,8 @@ function motivationBoost(item: CatalogItem, motivation?: MotivationId): number {
 function rank(item: CatalogItem, strategy: BasketStrategy, prefs: Preferences): number {
   const saleBonus = item.onSale ? 1 : 0;
   const motiv = motivationBoost(item, prefs.motivation);
+  const dietBoost = softDietBoost(item, prefs.diets);
+  const brands = prefs.preferredBrands ?? [];
   let base: number;
   switch (strategy) {
     case "lowest-cost":
@@ -78,10 +96,10 @@ function rank(item: CatalogItem, strategy: BasketStrategy, prefs: Preferences): 
       base = (item.tags?.includes("family-essentials") ? 4 : 0) + item.healthScore * 0.6 + saleBonus;
       break;
     case "brand":
-      base = (prefs.preferredBrand && item.brand === prefs.preferredBrand ? 6 : 0) + item.healthScore * 0.4 + saleBonus;
+      base = (brands.length && item.brand && brands.includes(item.brand) ? 6 : 0) + item.healthScore * 0.4 + saleBonus;
       break;
   }
-  return base + motiv;
+  return base + motiv + dietBoost;
 }
 
 function householdMultiplier(prefs: Preferences): number {
@@ -100,17 +118,17 @@ export function optimizeBasket(
   strategy: BasketStrategy = "healthiest",
 ): Basket {
   const have = new Set(prefs.kitchenHave ?? []);
-  const filtered = catalog.filter(i => {
-    if (have.has(i.id)) return false;                 // skip what user already has
-    if (prefs.avoidJunk && i.isJunk) return false;    // junk filter
-    if (!prefs.avoidJunk) {
-      // when disabled, allow snacks/junk normally — no extra filter
-    }
-    if (!passesDiets(i, prefs.diets)) return false;
-    if (!passesFoodTypes(i, prefs.foodTypes)) return false;
-    return true;
-  });
+  const MIN_LINES = 8;
 
+  const baseFilter = (i: CatalogItem, dropFoodTypes = false) => {
+    if (have.has(i.id)) return false;
+    if (prefs.avoidJunk && i.isJunk) return false;
+    if (!passesDiets(i, prefs.diets)) return false;
+    if (!dropFoodTypes && !passesFoodTypes(i, prefs.foodTypes)) return false;
+    return true;
+  };
+
+  const filtered = catalog.filter(i => baseFilter(i));
   const ranked = [...filtered].sort((a, b) => rank(b, strategy, prefs) - rank(a, strategy, prefs));
 
   const lines: BasketLine[] = [];
@@ -136,6 +154,22 @@ export function optimizeBasket(
     if (total + cost > totalBudget) continue;
     lines.push({ item, qty: householdMult, appliedDeal: dealForItem(item.id) });
     total += cost;
+  }
+
+  // Pass 3 (fallback): if still under MIN_LINES, drop the soft food-type filter
+  // and refill so the user always sees a useful basket.
+  if (lines.length < MIN_LINES) {
+    const relaxed = catalog
+      .filter(i => baseFilter(i, true))
+      .filter(i => !lines.find(l => l.item.id === i.id))
+      .sort((a, b) => rank(b, strategy, prefs) - rank(a, strategy, prefs));
+    for (const item of relaxed) {
+      if (lines.length >= MIN_LINES * 2) break;
+      const cost = item.price * householdMult;
+      if (total + cost > totalBudget) continue;
+      lines.push({ item, qty: householdMult, appliedDeal: dealForItem(item.id) });
+      total += cost;
+    }
   }
 
   // Spread across weeks for biweekly/monthly

@@ -16,7 +16,7 @@ const DEFAULT: DemoState = {
     motivation: "weekly-essentials",
     kitchenHave: [],
     avoidJunk: true,
-    preferredBrand: "Great Value",
+    preferredBrands: [],
   },
   basket: null,
   history: [],
@@ -30,10 +30,22 @@ function load(): DemoState {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULT;
     const parsed = JSON.parse(raw);
+    // Migration: legacy single preferredBrand → preferredBrands[]
+    const legacyBrand = parsed?.prefs?.preferredBrand;
+    const migratedBrands: string[] | undefined =
+      Array.isArray(parsed?.prefs?.preferredBrands)
+        ? parsed.prefs.preferredBrands
+        : legacyBrand
+          ? [legacyBrand]
+          : undefined;
     return {
       ...DEFAULT,
       ...parsed,
-      prefs: { ...DEFAULT.prefs, ...(parsed.prefs ?? {}) },
+      prefs: {
+        ...DEFAULT.prefs,
+        ...(parsed.prefs ?? {}),
+        preferredBrands: migratedBrands ?? DEFAULT.prefs.preferredBrands,
+      },
     };
   } catch {
     return DEFAULT;

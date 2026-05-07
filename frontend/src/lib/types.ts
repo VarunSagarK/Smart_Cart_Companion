@@ -130,7 +130,7 @@ export interface Preferences {
   motivation?: MotivationId;
   kitchenHave?: string[];   // ids of items already at home
   avoidJunk: boolean;
-  preferredBrand?: string;
+  preferredBrands?: string[];
 }
 
 export interface PurchaseRecord {

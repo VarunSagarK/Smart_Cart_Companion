@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Screen } from "@/components/Screen";
 import { useDemoStore } from "@/hooks/useDemoStore";
 import { buildAllStrategies } from "@/lib/budgetEngine";
-import { ALL_BRANDS, CATALOG, KITCHEN_BASICS } from "@/lib/mockCatalog";
+import { CATALOG, KITCHEN_BASICS } from "@/lib/mockCatalog";
+import { BrandMultiSelect } from "@/components/BrandMultiSelect";
 import {
   BudgetSource,
   DietId,
@@ -223,7 +224,7 @@ const AIOnboarding = () => {
   const [motivation, setMotivation] = useState<MotivationId>(state.prefs.motivation ?? "weekly-essentials");
   const [kitchenHave, setKitchenHave] = useState<string[]>(state.prefs.kitchenHave ?? []);
   const [avoidJunk, setAvoidJunk] = useState(state.prefs.avoidJunk);
-  const [brand, setBrand] = useState(state.prefs.preferredBrand ?? ALL_BRANDS[0]);
+  const [brands, setBrands] = useState<string[]>(state.prefs.preferredBrands ?? []);
   const [connected, setConnected] = useState<Record<BudgetSource, boolean>>({
     manual: true,
     ynab: false,
@@ -288,7 +289,7 @@ const AIOnboarding = () => {
       motivation,
       kitchenHave,
       avoidJunk,
-      preferredBrand: brand,
+      preferredBrands: brands,
     };
     setPrefs(prefs);
     const all = buildAllStrategies(prefs, CATALOG);
@@ -524,16 +525,7 @@ const AIOnboarding = () => {
             </div>
             <Switch checked={avoidJunk} onCheckedChange={setAvoidJunk} />
           </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Preferred brand (optional)</Label>
-            <select
-              value={brand}
-              onChange={e => setBrand(e.target.value)}
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm mt-1"
-            >
-              {ALL_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
-          </div>
+          <BrandMultiSelect selected={brands} onChange={setBrands} />
         </div>
       </Section>
 

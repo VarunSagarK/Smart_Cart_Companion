@@ -56,10 +56,31 @@ export const CATALOG: CatalogItem[] = [
   { id: "b4", name: "Cold Brew Coffee", brand: "Starbucks", category: "beverages", price: 4.97, basePrice: 4.97, unit: "32 oz", onSale: false, healthScore: 7, tags: ["vegetarian","vegan","gluten-free","dairy-free","halal","kosher","low-carb"], cuisines: ["american"], image: u("photo-1517701604599-bb29b565090c") },
 ];
 
-/** Distinct brand list, alphabetically sorted for clean dropdown UX. */
-export const ALL_BRANDS = Array.from(new Set(CATALOG.map(c => c.brand).filter(Boolean) as string[])).sort((a, b) =>
-  a.localeCompare(b),
-);
+/** Common Walmart-stocked grocery brands beyond the 30-item demo catalog.
+ *  Combined with catalog brands and exposed alphabetically as ALL_BRANDS. */
+const COMMON_BRANDS = [
+  "Annie's", "Bertolli", "Birds Eye", "Bumble Bee", "Campbell's",
+  "Chobani", "Coca-Cola", "Daisy", "Del Monte", "Dole",
+  "Equate", "Fairlife", "Frito-Lay", "General Mills", "Goya",
+  "Heinz", "Hellmann's", "Hershey's", "Honey Nut Cheerios", "Horizon Organic",
+  "House Foods", "Hunt's", "Jennie-O", "Jif", "Kellogg's",
+  "Kraft", "Lay's", "Lipton", "Marketside", "Member's Mark",
+  "Morton", "Mott's", "Nature Valley", "Nestlé", "Ocean Spray",
+  "Oreo", "Parent's Choice", "Pepperidge Farm", "Pepsi", "Philadelphia",
+  "Pillsbury", "Pop-Tarts", "Post", "Pringles", "Progresso",
+  "Quaker", "Ragu", "Sabra", "Sargento", "Silk",
+  "Simply Orange", "Skippy", "Smucker's", "Starbucks", "Stonyfield",
+  "Sun-Maid", "Sunny D", "Swanson", "Thomas'", "Tropicana",
+  "Tyson", "V8", "Welch's", "Wonder Bread", "Yoplait",
+];
+
+/** Distinct merged brand list, alphabetically sorted for clean dropdown UX. */
+export const ALL_BRANDS = Array.from(
+  new Set([
+    ...(CATALOG.map(c => c.brand).filter(Boolean) as string[]),
+    ...COMMON_BRANDS,
+  ]),
+).sort((a, b) => a.localeCompare(b));
 
 /** Common kitchen-have basics — alphabetical by label. */
 export const KITCHEN_BASICS: { id: string; label: string; emoji: string }[] = [
