@@ -190,42 +190,58 @@ const AIOnboarding = () => {
                     key={s}
                     onClick={() => setBudgetSource(s)}
                     className={cn(
-                      "rounded-lg border py-3 text-xs font-semibold uppercase transition",
+                      "rounded-lg border py-3 text-xs font-semibold uppercase transition relative",
                       budgetSource === s
                         ? "border-walmart-blue bg-walmart-blue/5 text-walmart-blue"
                         : "border-border bg-background",
                     )}
                   >
                     {s === "manual" ? "Manual" : s.toUpperCase()}
+                    {s !== "manual" && connected[s] && (
+                      <span className="absolute top-1 right-1 size-2 rounded-full bg-success" />
+                    )}
                   </button>
                 ))}
               </div>
-              {budgetSource !== "manual" && (
-                <p className="text-xs text-muted-foreground">
-                  Demo: {budgetSource.toUpperCase()} integration mocked. Enter your budget below to continue.
-                </p>
-              )}
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 space-y-2">
-              <Label htmlFor="b" className="text-sm">
-                {duration === "weekly" ? "Weekly" : "Monthly"} grocery budget
-              </Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input
-                  id="b"
-                  type="number"
-                  min={20}
-                  value={budget}
-                  onChange={e => setBudget(+e.target.value || 0)}
-                  className="pl-7 text-lg font-semibold"
-                />
-              </div>
-              {duration === "monthly" && (
-                <p className="text-xs text-muted-foreground">≈ ${weeklyBudget}/week</p>
-              )}
+
+          {budgetSource !== "manual" && !connected[budgetSource] ? (
+            <IntegrationLogin
+              brand={budgetSource === "ynab" ? "YNAB" : "Mint"}
+              color={budgetSource === "ynab" ? "#85B934" : "#00A38B"}
+              onConnect={() => {
+                setConnected(c => ({ ...c, [budgetSource]: true }));
+                // Pretend the integration prefills a recommended budget
+                setBudget(budgetSource === "ynab" ? 120 : 110);
+              }}
+              onCancel={() => setBudgetSource("manual")}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-4 space-y-2">
+                {budgetSource !== "manual" && (
+                  <p className="text-xs text-success font-semibold">
+                    ✓ Connected to {budgetSource.toUpperCase()} — budget pre-filled
+                  </p>
+                )}
+                <Label htmlFor="b" className="text-sm">
+                  {duration === "weekly" ? "Weekly" : "Monthly"} grocery budget
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input
+                    id="b"
+                    type="number"
+                    min={20}
+                    value={budget}
+                    onChange={e => setBudget(+e.target.value || 0)}
+                    className="pl-7 text-lg font-semibold"
+                  />
+                </div>
+                {duration === "monthly" && (
+                  <p className="text-xs text-muted-foreground">≈ ${weeklyBudget}/week</p>
+                )}
               {budget < 20 && (
                 <p className="text-xs text-destructive">Minimum $20 required.</p>
               )}
