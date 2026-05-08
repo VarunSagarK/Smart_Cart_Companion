@@ -146,7 +146,7 @@ const Results = () => {
                 {allSelected ? "Deselect all" : "Select all"}
               </button>
               <button
-                onClick={() => { clearBasket(); nav("/ai", { replace: true }); }}
+                onClick={() => { clearBasket(); nav("/ai", { state: { restart: true }, replace: true }); }}
                 className="text-xs font-semibold text-muted-foreground hover:text-destructive transition flex items-center gap-1"
               >
                 <RotateCcw className="size-3" /> Restart

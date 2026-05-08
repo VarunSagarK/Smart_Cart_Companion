@@ -232,10 +232,13 @@ const AIOnboarding = () => {
   const location = useLocation();
   const { state, setPrefs, setBasket } = useStore();
 
-  // If we already have a generated basket, go straight back to results
-  // (user went to cart/home and came back — don't reset their work)
+  // If user explicitly restarted, skip the redirect below
+  const didRestart = (location.state as { restart?: boolean } | null)?.restart === true;
+
+  // If we already have a generated basket (and user didn't restart),
+  // go straight back to results so they don't lose their work
   useEffect(() => {
-    if (state.basket && state.basket.lines.length > 0 && state.onboarded) {
+    if (!didRestart && state.basket && state.basket.lines.length > 0 && state.onboarded) {
       nav("/results", {
         state: { prefs: state.prefs, strategy: state.basket.strategy },
         replace: true,
