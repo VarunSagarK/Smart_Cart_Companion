@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 222 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 30% 12%;
+
+    /* Walmart blue */
+    --primary: 210 100% 43%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Walmart spark yellow */
+    --accent: 46 100% 56%;
+    --accent-foreground: 222 47% 11%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 40%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 210 100% 43%;
+
+    --radius: 0.75rem;
+
+    --walmart-blue: 210 100% 43%;
+    --walmart-blue-dark: 215 100% 30%;
+    --walmart-yellow: 46 100% 56%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5% 26%;
+    --sidebar-primary: 240 6% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 46 100% 56%;
+    --accent-foreground: 222 47% 11%;
+    --secondary: 217 33% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 65%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 70% 38%;
+    --success-foreground: 0 0% 100%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 210 100% 50%;
+    --sidebar-background: 240 6% 10%;
+    --sidebar-foreground: 240 5% 96%;
+    --sidebar-primary: 224 76% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 240 5% 96%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+}
