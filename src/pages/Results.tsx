@@ -132,26 +132,18 @@ const Results = () => {
             <span className="text-muted-foreground">Budget ${basket.budget.toFixed(2)}</span>
             <span className="text-green-600 font-semibold">You save ${savings.toFixed(2)}</span>
           </div>
-          {/* Select / Deselect all + Restart */}
+          {/* Select / Deselect all */}
           <div className="flex items-center justify-between pt-1">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Sparkles className="size-3 text-walmart-blue" />
               {selected.size} of {filteredLines.length} selected · tap to toggle
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={allSelected ? deselectAll : selectAll}
-                className="text-xs font-semibold text-walmart-blue hover:text-walmart-blue-dark transition"
-              >
-                {allSelected ? "Deselect all" : "Select all"}
-              </button>
-              <button
-                onClick={() => { clearBasket(); nav("/ai", { state: { restart: true }, replace: true }); }}
-                className="text-xs font-semibold text-muted-foreground hover:text-destructive transition flex items-center gap-1"
-              >
-                <RotateCcw className="size-3" /> Restart
-              </button>
-            </div>
+            <button
+              onClick={allSelected ? deselectAll : selectAll}
+              className="text-xs font-semibold text-walmart-blue hover:text-walmart-blue-dark transition"
+            >
+              {allSelected ? "Deselect all" : "Select all"}
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -177,10 +169,19 @@ const Results = () => {
       <Button
         onClick={handleAddToCart}
         disabled={!selectedLines.length}
-        className="w-full bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground h-12 text-base font-semibold sticky bottom-2 shadow-lg"
+        className="w-full bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground h-12 text-base font-semibold shadow-lg"
       >
         <ShoppingCart className="size-4 mr-2" />
         {selectedLines.length ? `Add ${selectedLines.length} to cart` : "Select items to add"}
+      </Button>
+
+      <Button
+        onClick={() => { clearBasket(); nav("/ai", { state: { restart: true }, replace: true }); }}
+        variant="outline"
+        className="w-full h-12 text-base font-semibold border-destructive text-destructive hover:bg-destructive/10"
+      >
+        <RotateCcw className="size-4 mr-2" />
+        Reset — start over
       </Button>
     </Screen>
   );

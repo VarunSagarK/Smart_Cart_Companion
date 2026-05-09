@@ -12,7 +12,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
-  exchangeYnabCode,
   fetchYnabBudgets,
   fetchYnabCategories,
   findGroceryBalance,
@@ -52,24 +51,24 @@ export function useYnab() {
     spent: number;
     remaining: number;
   } | null>(null);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const nav = useNavigate();
 
-  // Handle OAuth redirect callback (?code=...)
+  // Handle implicit OAuth callback — token is in URL hash: #access_token=...&...
   useEffect(() => {
-    const code = searchParams.get("code");
-    if (!code) return;
+    const hash = window.location.hash;
+    if (!hash) return;
 
-    // Clear the code from the URL immediately
-    setSearchParams({}, { replace: true });
+    const params = new URLSearchParams(hash.replace("#", ""));
+    const token = params.get("access_token");
+    if (!token) return;
+
+    // Clear hash from URL immediately
+    window.history.replaceState(null, "", window.location.pathname);
     setLoading(true);
 
     (async () => {
       try {
-        const result = await exchangeYnabCode(code);
-        if (!result?.access_token) throw new Error("No token");
-
-        const token = result.access_token;
         const budgets = await fetchYnabBudgets(token);
         const budget = budgets[0];
         if (!budget) throw new Error("No budgets found");
@@ -88,13 +87,13 @@ export function useYnab() {
         setConnection(conn);
         if (grocery) setGroceryBalance(grocery);
 
-        // Redirect to AI Planner with the YNAB grocery budget pre-filled
+        // Redirect to AI Planner with the real YNAB grocery budget pre-filled
         nav("/ai", {
           state: { ynabBudget: grocery?.remaining ?? grocery?.budgeted ?? null },
           replace: true,
         });
       } catch (err) {
-        console.error("[YNAB] OAuth exchange failed:", err);
+        console.error("[YNAB] OAuth failed:", err);
       } finally {
         setLoading(false);
       }

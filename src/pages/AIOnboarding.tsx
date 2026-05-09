@@ -268,11 +268,9 @@ const AIOnboarding = () => {
   const toggleBrand = (b: string) =>
     setBrands(prev => prev.includes(b) ? prev.filter(x => x !== b) : [...prev, b]);
 
-  // YNAB state — pick up budget passed back from OAuth redirect
+  // YNAB state — only pre-connect if budget just came in from OAuth redirect
   const ynabBudgetFromRedirect = (location.state as { ynabBudget?: number } | null)?.ynabBudget ?? null;
-  const [ynabConnected, setYnabConnected] = useState(
-    state.prefs.budgetSource === "ynab" || ynabBudgetFromRedirect !== null,
-  );
+  const [ynabConnected, setYnabConnected] = useState(ynabBudgetFromRedirect !== null);
   const [ynabBudget, setYnabBudget] = useState<number | null>(ynabBudgetFromRedirect);
 
   // AI generation state

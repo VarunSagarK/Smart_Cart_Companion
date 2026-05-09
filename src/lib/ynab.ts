@@ -21,7 +21,8 @@ const YNAB_OAUTH_BASE = "https://app.ynab.com/oauth";
 export function ynabAuthUrl(): string {
   const clientId = import.meta.env.VITE_YNAB_CLIENT_ID as string;
   const redirect = encodeURIComponent(window.location.origin + "/account");
-  return `${YNAB_OAUTH_BASE}/authorize?client_id=${clientId}&redirect_uri=${redirect}&response_type=code`;
+  // Use token (implicit) flow — returns access_token in URL hash, no backend needed
+  return `${YNAB_OAUTH_BASE}/authorize?client_id=${clientId}&redirect_uri=${redirect}&response_type=token`;
 }
 
 /**
@@ -96,7 +97,7 @@ export async function fetchYnabCategories(
   return data?.category_groups ?? [];
 }
 
-/** Find the most likely "Groceries" category and return remaining balance in $. */
+/** Find the most likely "Groceries" category and return balance in $. */
 export function findGroceryBalance(groups: YnabCategoryGroup[]): {
   categoryId: string;
   name: string;
@@ -104,21 +105,37 @@ export function findGroceryBalance(groups: YnabCategoryGroup[]): {
   spent: number;
   remaining: number;
 } | null {
-  const GROCERY_KEYWORDS = ["grocer", "food", "supermarket", "market", "walmart", "costco"];
+  // Log all categories so we can see exactly what's in the user's YNAB
+  console.log("[YNAB] All categories:", groups.flatMap(g =>
+    g.categories.map(c => `${g.name} → ${c.name} | budgeted: ${c.budgeted / 1000} | balance: ${c.balance / 1000}`)
+  ));
+
+  const GROCERY_KEYWORDS = [
+    "groceries", "grocery", "grocer", "food", "supermarket", "market",
+    "walmart", "costco", "loblaws", "sobeys", "metro", "produce", "eat", "meal", "dining",
+  ];
+
   for (const group of groups) {
     for (const cat of group.categories) {
       const lower = cat.name.toLowerCase();
       if (GROCERY_KEYWORDS.some(k => lower.includes(k))) {
+        const budgeted = cat.budgeted / 1000;
+        const spent = Math.abs(cat.activity) / 1000;
+        const remaining = cat.balance / 1000;
+        console.log(`[YNAB] Matched grocery category: "${cat.name}" | budgeted: $${budgeted} | spent: $${spent} | remaining: $${remaining}`);
         return {
           categoryId: cat.id,
           name: cat.name,
-          budgeted: cat.budgeted / 1000,
-          spent: Math.abs(cat.activity) / 1000,
-          remaining: cat.balance / 1000,
+          budgeted,
+          spent,
+          // If remaining is 0 but budgeted is set, use budgeted (new month / reset)
+          remaining: remaining > 0 ? remaining : budgeted,
         };
       }
     }
   }
+
+  console.warn("[YNAB] No grocery category found. Check browser console for full category list.");
   return null;
 }
 

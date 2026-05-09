@@ -90,10 +90,9 @@ const Basket = () => {
           </div>
           <button
             onClick={clearBasket}
-            className="p-2 rounded-full hover:bg-secondary transition text-muted-foreground"
-            aria-label="Clear cart"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-destructive text-destructive text-xs font-semibold hover:bg-destructive/10 transition"
           >
-            <Trash2 className="size-4" />
+            <Trash2 className="size-3.5" /> Clear cart
           </button>
         </CardContent>
       </Card>
