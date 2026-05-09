@@ -248,9 +248,15 @@ const AIOnboarding = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const ynabBudgetFromRedirectInit = (location.state as { ynabBudget?: number } | null)?.ynabBudget ?? null;
+
   const [duration, setDuration] = useState<PlanDuration>(state.prefs.duration);
   const [budgetSource, setBudgetSource] = useState<BudgetSource>(state.prefs.budgetSource);
-  const [budget, setBudget] = useState<number>(state.prefs.rawBudget ?? state.prefs.weeklyBudget);
+  const [budget, setBudget] = useState<number>(
+    ynabBudgetFromRedirectInit !== null && ynabBudgetFromRedirectInit > 0
+      ? ynabBudgetFromRedirectInit
+      : state.prefs.rawBudget ?? state.prefs.weeklyBudget
+  );
   const [hh, setHh] = useState<Household>(
     state.prefs.householdBreakdown ?? { adults: 2, seniors: 0, kids: 0 },
   );
@@ -269,9 +275,8 @@ const AIOnboarding = () => {
     setBrands(prev => prev.includes(b) ? prev.filter(x => x !== b) : [...prev, b]);
 
   // YNAB state — only pre-connect if budget just came in from OAuth redirect
-  const ynabBudgetFromRedirect = (location.state as { ynabBudget?: number } | null)?.ynabBudget ?? null;
-  const [ynabConnected, setYnabConnected] = useState(ynabBudgetFromRedirect !== null);
-  const [ynabBudget, setYnabBudget] = useState<number | null>(ynabBudgetFromRedirect);
+  const [ynabConnected, setYnabConnected] = useState(ynabBudgetFromRedirectInit !== null);
+  const [ynabBudget, setYnabBudget] = useState<number | null>(ynabBudgetFromRedirectInit);
 
   // AI generation state
   const [generating, setGenerating] = useState(false);
@@ -291,10 +296,14 @@ const AIOnboarding = () => {
   const weeks = duration === "monthly" ? 4 : duration === "biweekly" ? 2 : 1;
   const weeklyBudget = useMemo(() => +(budget / weeks).toFixed(2), [budget, weeks]);
   const totalPeople = hh.adults + hh.seniors + hh.kids;
-  const effectiveBudget = ynabConnected && ynabBudget !== null ? ynabBudget : budget;
-  const budgetPct = Math.min(100, (effectiveBudget / (weeklyBudget * weeks)) * 100);
+  const effectiveBudget = budget;
+  const budgetPct = ynabBudget ? Math.min(100, (budget / ynabBudget) * 100) : Math.min(100, (budget / (weeklyBudget * weeks)) * 100);
 
-  const valid = effectiveBudget >= 20 && totalPeople >= 1;
+  const valid = effectiveBudget > 0 && totalPeople >= 1;
+  const overBudget = ynabConnected && ynabBudget !== null && budget > ynabBudget;
+  const budgetWarning = overBudget
+    ? `You're $${(budget - ynabBudget!).toFixed(2)} over your YNAB grocery budget.`
+    : null;
 
   const handleMockYnabConnect = () => {
     const mockRemaining = +(budget * 0.85).toFixed(2);
@@ -482,19 +491,20 @@ const AIOnboarding = () => {
               <Input
                 id="b"
                 type="number"
-                min={20}
-                value={ynabConnected && ynabBudget !== null ? ynabBudget : budget}
-                onChange={e => {
-                  if (!ynabConnected) setBudget(+e.target.value || 0);
-                }}
-                readOnly={ynabConnected}
-                className={cn("pl-7 text-lg font-semibold", ynabConnected && "bg-muted")}
+                min={0}
+                value={budget}
+                onChange={e => setBudget(+e.target.value || 0)}
+                className="pl-7 text-lg font-semibold"
               />
             </div>
             <p className="text-[11px] text-muted-foreground">
               ≈ ${weeklyBudget}/week · for {weeks} week{weeks > 1 ? "s" : ""}
             </p>
-            {effectiveBudget < 20 && <p className="text-xs text-destructive">Minimum $20 required.</p>}
+            {budgetWarning && (
+              <p className="text-xs text-amber-600 font-medium flex items-center gap-1">
+                <AlertCircle className="size-3 shrink-0" /> {budgetWarning}
+              </p>
+            )}
           </div>
         </div>
       </Section>
@@ -647,7 +657,7 @@ const AIOnboarding = () => {
           <CardContent className="p-3 flex items-center gap-2">
             <AlertCircle className="size-4 text-amber-600 shrink-0" />
             <p className="text-xs text-amber-800">
-              {effectiveBudget < 20 ? "Set a budget of at least $20." : "Add at least one person to the household."}
+              {effectiveBudget <= 0 ? "Enter a budget greater than $0." : "Add at least one person to the household."}
             </p>
           </CardContent>
         </Card>
