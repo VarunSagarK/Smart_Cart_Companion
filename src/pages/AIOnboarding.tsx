@@ -432,10 +432,10 @@ const AIOnboarding = () => {
             </button>
             <button
               type="button"
-              onClick={() => ynabConnected ? null : handleMockYnabConnect()}
+              onClick={() => { if (!ynabConnected) setBudgetSource("ynab"); }}
               className={cn(
                 "rounded-lg border p-3 text-center transition",
-                ynabConnected ? "border-[#85B934] bg-[#85B934]/5" : "border-border bg-background hover:bg-secondary",
+                ynabConnected ? "border-[#85B934] bg-[#85B934]/5" : budgetSource === "ynab" ? "border-walmart-blue bg-walmart-blue/5" : "border-border bg-background hover:bg-secondary",
               )}
             >
               <p className="text-sm font-semibold" style={{ color: ynabConnected ? "#85B934" : undefined }}>YNAB</p>
@@ -456,7 +456,16 @@ const AIOnboarding = () => {
             <div className="rounded-lg border border-green-200 bg-green-50 p-3 space-y-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold text-green-800">YNAB grocery budget remaining</p>
-                <CheckCircle2 className="size-4 text-green-600" />
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4 text-green-600" />
+                  <button
+                    type="button"
+                    onClick={() => { setYnabConnected(false); setYnabBudget(null); setBudgetSource("manual"); localStorage.removeItem("ynab_connection"); }}
+                    className="text-[10px] text-red-500 font-semibold hover:underline"
+                  >
+                    Disconnect
+                  </button>
+                </div>
               </div>
               <p className="text-2xl font-bold text-green-700">${ynabBudget.toFixed(2)}</p>
               <Progress value={budgetPct} className="h-1.5 bg-green-100 [&>div]:bg-green-500" />
