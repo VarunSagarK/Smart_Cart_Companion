@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart, Sparkles, Trash2 } from "lucide-react";
+import { ShoppingCart, Sparkles, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Screen } from "@/components/Screen";
@@ -26,6 +26,7 @@ const Basket = () => {
   const basket = state.basket;
   const duration = state.prefs.duration;
   const motivation = state.prefs.motivation;
+  const [showOverBudgetDialog, setShowOverBudgetDialog] = useState(false);
 
   const sorted = useMemo(
     () => (basket ? [...basket.lines].sort((a, b) => a.item.name.localeCompare(b.item.name)) : []),
@@ -64,6 +65,9 @@ const Basket = () => {
 
   const totalItems = basket.lines.reduce((n, l) => n + l.qty, 0);
   const motivationLabel = motivation ? MOTIVATION_LABELS[motivation] ?? "Weekly Essentials" : "Weekly Essentials";
+  // Use basket.budget (period total from the engine) — same source as Results page
+  const budget = basket.budget;
+  const overBudget = basket.subtotal > budget ? +(basket.subtotal - budget).toFixed(2) : 0;
 
   const renderLines = (lines: typeof basket.lines) =>
     lines.map(l => (
@@ -78,22 +82,32 @@ const Basket = () => {
   return (
     <Screen title="Cart" subtitle={`${totalItems} item${totalItems !== 1 ? "s" : ""}`}>
       {/* Totals summary */}
-      <Card>
-        <CardContent className="p-4 flex justify-between items-center">
-          <div>
-            <p className="text-xs text-muted-foreground">Subtotal</p>
-            <p className="text-2xl font-bold text-walmart-blue">${basket.subtotal.toFixed(2)}</p>
+      <Card className={overBudget ? "border-red-300" : ""}>
+        <CardContent className="p-4 space-y-2">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-xs text-muted-foreground">Subtotal</p>
+              <p className={`text-2xl font-bold ${overBudget ? "text-red-500" : "text-walmart-blue"}`}>
+                ${basket.subtotal.toFixed(2)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Rollback savings</p>
+              <p className="text-sm font-semibold text-green-600">−${basket.savings.toFixed(2)}</p>
+            </div>
+            <button
+              onClick={clearBasket}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-destructive text-destructive text-xs font-semibold hover:bg-destructive/10 transition"
+            >
+              <Trash2 className="size-3.5" /> Clear cart
+            </button>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-muted-foreground">Rollback savings</p>
-            <p className="text-sm font-semibold text-green-600">−${basket.savings.toFixed(2)}</p>
-          </div>
-          <button
-            onClick={clearBasket}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-destructive text-destructive text-xs font-semibold hover:bg-destructive/10 transition"
-          >
-            <Trash2 className="size-3.5" /> Clear cart
-          </button>
+          {overBudget > 0 && (
+            <div className="flex items-center justify-between text-xs pt-1 border-t border-red-100">
+              <span className="text-muted-foreground">Budget ${budget.toFixed(2)}</span>
+              <span className="text-red-500 font-semibold">${overBudget.toFixed(2)} over budget</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -123,11 +137,48 @@ const Basket = () => {
       )}
 
       <Button
-        onClick={() => nav("/checkout")}
-        className="w-full bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground h-12 font-semibold sticky bottom-2 shadow-lg"
+        onClick={() => overBudget ? setShowOverBudgetDialog(true) : nav("/checkout")}
+        className={`w-full h-12 font-semibold sticky bottom-2 shadow-lg text-primary-foreground ${overBudget ? "bg-red-500 hover:bg-red-600" : "bg-walmart-blue hover:bg-walmart-blue-dark"}`}
       >
         Check out · ${basket.subtotal.toFixed(2)}
+        {overBudget > 0 && <span className="ml-2 text-xs font-normal opacity-90">(${overBudget.toFixed(2)} over)</span>}
       </Button>
+
+      {/* Over-budget confirmation dialog */}
+      {showOverBudgetDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6">
+          <div className="bg-background rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="size-12 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="size-6 text-red-500" />
+              </div>
+              <h2 className="text-base font-bold text-foreground">Over your budget</h2>
+              <p className="text-sm text-muted-foreground">
+                Your cart is{" "}
+                <span className="font-semibold text-red-500">${overBudget.toFixed(2)} over</span>{" "}
+                your ${budget.toFixed(2)} budget. Are you sure you want to proceed to checkout?
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <Button
+                variant="default"
+                autoFocus
+                onClick={() => setShowOverBudgetDialog(false)}
+                className="bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground font-bold"
+              >
+                No, go back
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => { setShowOverBudgetDialog(false); nav("/checkout"); }}
+                className="border-red-300 text-red-500 hover:bg-red-50 font-semibold"
+              >
+                Yes, proceed
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Screen>
   );
 };

@@ -152,7 +152,7 @@ export function useDemoStore() {
           lines,
           subtotal,
           savings,
-          budget: existing?.budget ?? s.prefs.weeklyBudget,
+          budget: existing?.budget ?? (s.prefs.rawBudget ?? s.prefs.weeklyBudget * (s.prefs.duration === "monthly" ? 4 : s.prefs.duration === "biweekly" ? 2 : 1)),
           strategy: existing?.strategy ?? "healthiest",
         };
         return { ...s, basket };

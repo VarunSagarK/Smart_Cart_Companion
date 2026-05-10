@@ -244,6 +244,12 @@ const AIOnboarding = () => {
       ? ynabBudgetFromRedirectInit
       : state.prefs.rawBudget ?? state.prefs.weeklyBudget
   );
+  // String version drives the input so the leading "0" is stripped as user types
+  const [budgetStr, setBudgetStr] = useState<string>(String(
+    ynabBudgetFromRedirectInit !== null && ynabBudgetFromRedirectInit > 0
+      ? ynabBudgetFromRedirectInit
+      : state.prefs.rawBudget ?? state.prefs.weeklyBudget
+  ));
   const [hh, setHh] = useState<Household>(
     state.prefs.householdBreakdown ?? { adults: 2, seniors: 0, kids: 0 },
   );
@@ -445,7 +451,9 @@ const AIOnboarding = () => {
                     onClick={() => {
                       setYnabConnected(false);
                       setYnabBudget(null);
-                      setBudget(state.prefs.rawBudget ?? state.prefs.weeklyBudget ?? 150);
+                      const fallback = state.prefs.rawBudget ?? state.prefs.weeklyBudget ?? 150;
+                      setBudget(fallback);
+                      setBudgetStr(String(fallback));
                       setBudgetSource("manual");
                       localStorage.removeItem("ynab_connection");
                       localStorage.removeItem("ynab_token");
@@ -472,8 +480,21 @@ const AIOnboarding = () => {
                 id="b"
                 type="number"
                 min={0}
-                value={budget}
-                onChange={e => setBudget(+e.target.value || 0)}
+                value={budgetStr}
+                onChange={e => {
+                  const raw = e.target.value;
+                  // Strip leading zeros: "050" → "50", but allow "" and "0"
+                  const cleaned = raw === "" ? "" : String(parseFloat(raw) || 0);
+                  setBudgetStr(cleaned);
+                  setBudget(parseFloat(cleaned) || 0);
+                }}
+                onBlur={() => {
+                  // On blur, ensure it's never empty
+                  if (budgetStr === "" || budgetStr === "0") {
+                    setBudgetStr("0");
+                    setBudget(0);
+                  }
+                }}
                 className="pl-7 text-lg font-semibold"
               />
             </div>
@@ -529,16 +550,16 @@ const AIOnboarding = () => {
         {totalPeople < 1 && <p className="text-xs text-destructive mt-2">Add at least one person.</p>}
       </Section>
 
-      {/* 4 — Food Types — elegant grid */}
-      <Section step={4} totalSteps={TOTAL_STEPS} title="What kind of foods do you enjoy?" hint="Select all that apply. AI will match deals to your taste.">
+      {/* 4 — Dietary Preferences */}
+      <Section step={4} totalSteps={TOTAL_STEPS} title="Any dietary preferences?" hint="Select all that apply. We'll filter the catalog to match.">
         <div className="grid grid-cols-3 gap-2">
-          {FOOD_TYPES.map(f => {
-            const active = foodTypes.includes(f.id);
+          {DIETS.map(d => {
+            const active = diets.includes(d.id);
             return (
               <button
-                key={f.id}
+                key={d.id}
                 type="button"
-                onClick={() => toggleFood(f.id)}
+                onClick={() => toggleDiet(d.id)}
                 className={cn(
                   "rounded-xl border p-2.5 flex flex-col items-center gap-1 text-center transition",
                   active
@@ -546,16 +567,16 @@ const AIOnboarding = () => {
                     : "border-border bg-background hover:bg-secondary",
                 )}
               >
-                <span className="text-2xl leading-none">{f.emoji}</span>
+                <span className="text-2xl leading-none">{d.emoji}</span>
                 <span className={cn("text-[10px] font-semibold leading-tight", active ? "text-walmart-blue" : "text-foreground/80")}>
-                  {f.label}
+                  {d.label}
                 </span>
               </button>
             );
           })}
         </div>
-        {foodTypes.length > 0 && (
-          <button type="button" onClick={() => setFoodTypes([])} className="mt-2 text-[11px] text-muted-foreground hover:text-destructive transition">
+        {diets.length > 0 && (
+          <button type="button" onClick={() => setDiets([])} className="mt-2 text-[11px] text-muted-foreground hover:text-destructive transition">
             Clear selection
           </button>
         )}
