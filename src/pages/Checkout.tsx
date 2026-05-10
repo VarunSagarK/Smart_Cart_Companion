@@ -309,11 +309,11 @@ const Checkout = () => {
         )}
 
         {/* CTAs */}
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" onClick={() => nav("/wellness")}>
+        <div className="grid grid-cols-2 gap-2 sticky bottom-2 z-20">
+          <Button variant="outline" onClick={() => nav("/wellness")} className="bg-background shadow-md">
             Payment History
           </Button>
-          <Button className="bg-walmart-blue text-primary-foreground" onClick={() => nav("/")}>
+          <Button className="bg-walmart-blue text-primary-foreground shadow-md" onClick={() => nav("/")}>
             Keep Shopping
           </Button>
         </div>
