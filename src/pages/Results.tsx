@@ -14,18 +14,35 @@ import {
   STRATEGY_META,
 } from "@/lib/budgetEngine";
 import { CATALOG } from "@/lib/mockCatalog";
-import { BasketStrategy, Preferences, ResultFilter } from "@/lib/types";
+import { BasketLine, BasketStrategy, Preferences, ResultFilter } from "@/lib/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+// ── Per-item AI reason chip ───────────────────────────────────────────────
+function getItemReason(line: BasketLine, strategy: BasketStrategy): string {
+  const item = line.item;
+  if (item.onSale && item.basePrice > item.price) {
+    const pct = Math.round(((item.basePrice - item.price) / item.basePrice) * 100);
+    return `Rollback — save ${pct}%`;
+  }
+  if (strategy === "healthiest" && item.healthScore >= 8) return "Top health pick";
+  if (strategy === "bulk-saver" && item.bulk) return "Bulk value";
+  if (strategy === "lowest-cost") return "Best price";
+  if (item.healthScore >= 8) return "Great nutrition";
+  if (item.tags?.includes("high-protein")) return "High protein";
+  if (item.tags?.includes("budget-saver")) return "Budget friendly";
+  if (item.bulk) return "Bulk savings";
+  return "AI recommended";
+}
 
 const Results = () => {
   const nav = useNavigate();
   const location = useLocation();
   const { state, addItemsToBasket, clearBasket } = useStore();
 
-  // AIOnboarding passes the freshly-submitted prefs via location state so we
-  // don't depend on React state having flushed yet. Fall back to store prefs.
   const prefs: Preferences = (location.state as { prefs?: Preferences })?.prefs ?? state.prefs;
+  const duration = prefs.duration;
+  const weeks = duration === "monthly" ? 4 : duration === "biweekly" ? 2 : 1;
 
   const allBaskets = useMemo(() => buildAllStrategies(prefs, CATALOG), [prefs]);
 
@@ -66,6 +83,20 @@ const Results = () => {
   const subtotal = +selectedLines.reduce((n, l) => n + l.item.price * l.qty, 0).toFixed(2);
   const savings = +selectedLines.reduce((n, l) => n + (l.item.basePrice - l.item.price) * l.qty, 0).toFixed(2);
   const pct = Math.min(100, (subtotal / basket.budget) * 100);
+  const overBudget = subtotal > basket.budget ? +(subtotal - basket.budget).toFixed(2) : 0;
+
+  // Week grouping for biweekly / monthly — evenly distribute items
+  const weekGroups: { label: string; lines: typeof filteredLines }[] | null = useMemo(() => {
+    if (weeks <= 1) return null;
+    const groups = Array.from({ length: weeks }, (_, i) => ({
+      label: `Week ${i + 1} Groceries`,
+      lines: [] as typeof filteredLines,
+    }));
+    filteredLines.forEach((l, i) => {
+      groups[i % weeks].lines.push(l);
+    });
+    return groups;
+  }, [filteredLines, weeks]);
 
   const handleAddToCart = () => {
     if (!selectedLines.length) {
@@ -80,6 +111,16 @@ const Results = () => {
     toast.success(`${selectedLines.length} items added to cart`);
     nav("/basket");
   };
+
+  const renderCard = (l: typeof filteredLines[0]) => (
+    <ProductCard
+      key={l.item.id}
+      item={l.item}
+      selected={selected.has(l.item.id)}
+      onToggle={toggle}
+      reason={getItemReason(l, strategy)}
+    />
+  );
 
   return (
     <Screen title="Your AI Basket" back subtitle={STRATEGY_META[strategy].tagline}>
@@ -120,19 +161,24 @@ const Results = () => {
         ))}
       </div>
 
-      {/* Budget summary */}
-      <Card>
+      {/* Budget summary — sticky so it stays visible while scrolling */}
+      <Card className="sticky top-0 z-20 shadow-md">
         <CardContent className="p-4 space-y-2">
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Selected subtotal</span>
-            <span className="text-2xl font-bold text-walmart-blue">${subtotal.toFixed(2)}</span>
+            <span className={cn("text-2xl font-bold", overBudget ? "text-red-500" : "text-walmart-blue")}>
+              ${subtotal.toFixed(2)}
+            </span>
           </div>
-          <Progress value={pct} className="h-2" />
+          <Progress value={pct} className={cn("h-2", overBudget ? "[&>div]:bg-red-500" : "")} />
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Budget ${basket.budget.toFixed(2)}</span>
-            <span className="text-green-600 font-semibold">You save ${savings.toFixed(2)}</span>
+            {overBudget ? (
+              <span className="text-red-500 font-semibold">${overBudget.toFixed(2)} over budget</span>
+            ) : (
+              <span className="text-green-600 font-semibold">You save ${savings.toFixed(2)}</span>
+            )}
           </div>
-          {/* Select / Deselect all */}
           <div className="flex items-center justify-between pt-1">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Sparkles className="size-3 text-walmart-blue" />
@@ -148,17 +194,52 @@ const Results = () => {
         </CardContent>
       </Card>
 
-      {/* Product grid */}
-      <div className="grid grid-cols-2 gap-2">
-        {filteredLines.map(l => (
-          <ProductCard
-            key={l.item.id}
-            item={l.item}
-            selected={selected.has(l.item.id)}
-            onToggle={toggle}
-          />
-        ))}
-      </div>
+      {/* Product grid — week-grouped in cards for biweekly/monthly */}
+      {weekGroups ? (
+        weekGroups.map((group, i) => {
+          if (!group.lines.length) return null;
+          const groupIds = group.lines.map(l => l.item.id);
+          const allGroupSelected = groupIds.every(id => selected.has(id));
+          const toggleGroup = () => {
+            setSelected(s => {
+              const next = new Set(s);
+              if (allGroupSelected) {
+                groupIds.forEach(id => next.delete(id));
+              } else {
+                groupIds.forEach(id => next.add(id));
+              }
+              return next;
+            });
+          };
+          return (
+            <Card key={i}>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-bold text-walmart-blue-dark">{group.label}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      {group.lines.length} items
+                    </span>
+                    <button
+                      onClick={toggleGroup}
+                      className="text-[11px] font-semibold text-walmart-blue hover:text-walmart-blue-dark transition"
+                    >
+                      {allGroupSelected ? "Deselect all" : "Select all"}
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {group.lines.map(renderCard)}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          {filteredLines.map(renderCard)}
+        </div>
+      )}
 
       {!filteredLines.length && (
         <p className="text-sm text-muted-foreground text-center py-6">
@@ -172,7 +253,7 @@ const Results = () => {
         className="w-full bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground h-12 text-base font-semibold shadow-lg"
       >
         <ShoppingCart className="size-4 mr-2" />
-        {selectedLines.length ? `Add ${selectedLines.length} to cart` : "Select items to add"}
+        {selectedLines.length ? `Add ${selectedLines.length} to cart` : "Select Items to Add"}
       </Button>
 
       <Button

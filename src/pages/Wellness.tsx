@@ -36,7 +36,7 @@ const Ring = ({ value, label }: { value: number; label: string }) => {
 
 const Wellness = () => {
   const { state } = useStore();
-  const s = buildDashboard(state.history, state.prefs.weeklyBudget);
+  const s = buildDashboard(state.history, state.prefs.weeklyBudget, state.prefs);
 
   // Tiny wins (lightweight, supportive copy)
   const wins: string[] = [];
@@ -73,21 +73,32 @@ const Wellness = () => {
         </Card>
       )}
 
-      {/* This week's budget */}
+      {/* Period budget */}
       <Card>
         <CardContent className="p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Wallet className="size-4 text-walmart-blue" />
-            <p className="text-sm font-semibold">This week's budget</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Wallet className="size-4 text-walmart-blue" />
+              <p className="text-sm font-semibold">{s.periodLabel}'s budget</p>
+            </div>
+            <span className="text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+              {state.prefs.duration === "monthly" ? "Monthly" : state.prefs.duration === "biweekly" ? "Bi-weekly" : "Weekly"} plan
+            </span>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-bold text-walmart-blue">${s.weekSpent.toFixed(2)}</span>
-            <span className="text-sm text-muted-foreground">of ${s.weekBudget}</span>
+            <div>
+              <span className="text-2xl font-bold text-walmart-blue">${s.periodSpent.toFixed(2)}</span>
+              <span className="text-sm text-muted-foreground ml-1">spent</span>
+            </div>
+            <span className="text-sm text-muted-foreground">of ${s.periodBudget.toFixed(2)} budget</span>
           </div>
-          <Progress value={s.weekUsedPct} className="h-2" />
+          <Progress value={s.periodUsedPct} className="h-2" />
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">{s.weekUsedPct}% used</span>
-            <span className="text-success font-semibold">${s.weekRemaining.toFixed(2)} remaining</span>
+            <span className="text-muted-foreground">{s.periodUsedPct}% used</span>
+            {s.periodRemaining > 0
+              ? <span className="text-green-600 font-semibold">${s.periodRemaining.toFixed(2)} remaining</span>
+              : <span className="text-destructive font-semibold">${(s.periodSpent - s.periodBudget).toFixed(2)} over budget</span>
+            }
           </div>
         </CardContent>
       </Card>

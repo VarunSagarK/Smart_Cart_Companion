@@ -91,9 +91,15 @@ export async function generateAIBasket(prefs: Preferences): Promise<AIPlannerRes
             ? "bulk-saver"
             : "healthiest";
 
+    const weeks = prefs.duration === "monthly" ? 4 : prefs.duration === "biweekly" ? 2 : 1;
+    const totalBudget = (prefs.rawBudget ?? prefs.weeklyBudget * weeks).toFixed(2);
+    const householdDesc = prefs.householdBreakdown
+      ? `${prefs.householdBreakdown.adults + prefs.householdBreakdown.seniors + prefs.householdBreakdown.kids} people`
+      : `${prefs.household} people`;
+
     return {
       strategy,
-      explanation: `I've built your ${strategy.replace("-", " ")} basket based on your $${prefs.weeklyBudget}/week budget for ${prefs.household} people. Add your OpenAI API key to VITE_OPENAI_API_KEY for AI-personalized recommendations.`,
+      explanation: `Built your ${strategy.replace(/-/g, " ")} basket for ${householdDesc} within a $${totalBudget} ${prefs.duration} budget — prioritising rollback deals and top-rated picks.`,
       selectedIds: all[strategy].lines.map(l => l.item.id),
       usedAI: false,
     };
@@ -131,9 +137,14 @@ export async function generateAIBasket(prefs: Preferences): Promise<AIPlannerRes
   } catch (err) {
     console.error("[AI Planner] OpenAI call failed, falling back to local engine:", err);
     const all = buildAllStrategies(prefs, CATALOG);
+    const weeks = prefs.duration === "monthly" ? 4 : prefs.duration === "biweekly" ? 2 : 1;
+    const totalBudget = (prefs.rawBudget ?? prefs.weeklyBudget * weeks).toFixed(2);
+    const householdDesc = prefs.householdBreakdown
+      ? `${prefs.householdBreakdown.adults + prefs.householdBreakdown.seniors + prefs.householdBreakdown.kids} people`
+      : `${prefs.household} people`;
     return {
       strategy: "healthiest",
-      explanation: "AI planning is temporarily unavailable. Here's your healthiest basket instead.",
+      explanation: `Built your healthiest basket for ${householdDesc} within a $${totalBudget} ${prefs.duration} budget — prioritising rollback deals and top-rated picks.`,
       selectedIds: all.healthiest.lines.map(l => l.item.id),
       usedAI: false,
     };

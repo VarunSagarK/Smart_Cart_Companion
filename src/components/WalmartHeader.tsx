@@ -1,4 +1,4 @@
-import { ArrowLeft, ShoppingCart, Sparkles } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Sparkles, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "@/contexts/DemoStoreContext";
 
@@ -6,15 +6,16 @@ interface Props {
   title?: string;
   back?: boolean;
   subtitle?: string;
+  showSearch?: boolean;
 }
 
-export const WalmartHeader = ({ title, back, subtitle }: Props) => {
+export const WalmartHeader = ({ title, back, subtitle, showSearch }: Props) => {
   const nav = useNavigate();
   const { cartCount, cartTotal } = useStore();
 
   return (
     <header className="sticky top-0 z-30 bg-walmart-blue text-primary-foreground shadow-sm">
-      <div className="px-4 pt-5 pb-4 flex items-center gap-3">
+      <div className="px-4 pt-5 pb-3 flex items-center gap-3">
         {back ? (
           <button
             onClick={() => nav(-1)}
@@ -54,6 +55,19 @@ export const WalmartHeader = ({ title, back, subtitle }: Props) => {
           )}
         </Link>
       </div>
+
+      {/* Search bar — shown on home page */}
+      {showSearch && (
+        <div className="px-4 pb-3">
+          <Link
+            to="/search"
+            className="flex items-center gap-2 px-3 py-2 rounded-full bg-white text-muted-foreground text-sm w-full"
+          >
+            <Search className="size-4 text-gray-400 shrink-0" />
+            <span className="text-gray-400">Search Walmart</span>
+          </Link>
+        </div>
+      )}
     </header>
   );
 };

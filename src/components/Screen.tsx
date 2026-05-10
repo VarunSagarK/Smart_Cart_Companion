@@ -8,13 +8,14 @@ interface Props {
   subtitle?: string;
   back?: boolean;
   hideTabs?: boolean;
+  showSearch?: boolean;
   children: ReactNode;
 }
 
-export const Screen = ({ title, subtitle, back, hideTabs, children }: Props) => (
+export const Screen = ({ title, subtitle, back, hideTabs, showSearch, children }: Props) => (
   <PhoneFrame>
     <div className="flex flex-col min-h-full">
-      <WalmartHeader title={title} subtitle={subtitle} back={back} />
+      <WalmartHeader title={title} subtitle={subtitle} back={back} showSearch={showSearch} />
       <main className="flex-1 p-4 space-y-4">{children}</main>
       {!hideTabs && <BottomTabs />}
     </div>

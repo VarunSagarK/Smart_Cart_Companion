@@ -99,6 +99,8 @@ function weekCount(prefs: Preferences): number {
   return prefs.duration === "monthly" ? 4 : prefs.duration === "biweekly" ? 2 : 1;
 }
 
+const MIN_ITEMS = 20; // always show at least this many items regardless of budget
+
 export function optimizeBasket(
   prefs: Preferences,
   catalog: CatalogItem[],
@@ -106,17 +108,24 @@ export function optimizeBasket(
 ): Basket {
   const have = new Set(prefs.kitchenHave ?? []);
   const filtered = catalog.filter(i => {
-    if (have.has(i.id)) return false;                 // skip what user already has
-    if (prefs.avoidJunk && i.isJunk) return false;    // junk filter
-    if (!prefs.avoidJunk) {
-      // when disabled, allow snacks/junk normally — no extra filter
-    }
+    if (have.has(i.id)) return false;
+    if (prefs.avoidJunk && i.isJunk) return false;
     if (!passesDiets(i, prefs.diets)) return false;
     if (!passesFoodTypes(i, prefs.foodTypes)) return false;
     return true;
   });
 
-  const ranked = [...filtered].sort((a, b) => rank(b, strategy, prefs) - rank(a, strategy, prefs));
+  // If very strict filters yield too few items, relax food-type filter
+  const pool = filtered.length >= MIN_ITEMS
+    ? filtered
+    : catalog.filter(i => {
+        if (have.has(i.id)) return false;
+        if (prefs.avoidJunk && i.isJunk) return false;
+        if (!passesDiets(i, prefs.diets)) return false;
+        return true; // food-type filter dropped
+      });
+
+  const ranked = [...pool].sort((a, b) => rank(b, strategy, prefs) - rank(a, strategy, prefs));
 
   const lines: BasketLine[] = [];
   const seenCats = new Set<string>();
@@ -124,23 +133,31 @@ export function optimizeBasket(
   const householdMult = householdMultiplier(prefs);
   const totalBudget = prefs.weeklyBudget * weekCount(prefs);
 
-  // Pass 1: cover each category once
+  // Pass 1: cover each category once (always include, budget-aware qty)
   for (const item of ranked) {
     if (seenCats.has(item.category)) continue;
     const qty = householdMult;
-    const cost = item.price * qty;
-    if (total + cost > totalBudget) continue;
     lines.push({ item, qty, appliedDeal: dealForItem(item.id) });
-    total += cost;
+    total += item.price * qty;
     seenCats.add(item.category);
   }
-  // Pass 2: greedily fill remaining budget
+
+  // Pass 2: greedily fill to MIN_ITEMS — ignore budget cap until we hit minimum
   for (const item of ranked) {
+    if (lines.length >= MIN_ITEMS && total > totalBudget) break;
     if (lines.find(l => l.item.id === item.id)) continue;
-    const cost = item.price * householdMult;
-    if (total + cost > totalBudget) continue;
     lines.push({ item, qty: householdMult, appliedDeal: dealForItem(item.id) });
-    total += cost;
+    total += item.price * householdMult;
+  }
+
+  // Pass 3: if still under MIN_ITEMS, add anything remaining
+  if (lines.length < MIN_ITEMS) {
+    for (const item of ranked) {
+      if (lines.length >= MIN_ITEMS) break;
+      if (lines.find(l => l.item.id === item.id)) continue;
+      lines.push({ item, qty: 1, appliedDeal: dealForItem(item.id) });
+      total += item.price;
+    }
   }
 
   // Spread across weeks for biweekly/monthly

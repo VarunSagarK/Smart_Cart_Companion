@@ -1,10 +1,11 @@
-import { PurchaseRecord } from "./types";
+import { PurchaseRecord, Preferences } from "./types";
 
 export interface DashboardStats {
-  weekBudget: number;
-  weekSpent: number;
-  weekRemaining: number;
-  weekUsedPct: number;
+  periodLabel: string;   // "This week" | "This bi-week" | "This month"
+  periodBudget: number;  // the budget for that period
+  periodSpent: number;   // total spent in matching orders
+  periodRemaining: number;
+  periodUsedPct: number;
   monthlySavings: number;
   projectedNextMonthSavings: number;
   smartTip: string;
@@ -13,6 +14,11 @@ export interface DashboardStats {
   healthierSwaps: number;
   efficiencyScore: number; // 0-100
   insights: string[];
+  // kept for backwards compat
+  weekBudget: number;
+  weekSpent: number;
+  weekRemaining: number;
+  weekUsedPct: number;
 }
 
 const TIPS = [
@@ -23,27 +29,38 @@ const TIPS = [
   "Switching soda brands could save $24/month.",
 ];
 
-export function buildDashboard(history: PurchaseRecord[], weekBudget: number): DashboardStats {
+export function buildDashboard(
+  history: PurchaseRecord[],
+  weekBudget: number,
+  prefs?: Pick<Preferences, "duration" | "rawBudget">,
+): DashboardStats {
   const now = new Date();
-  const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
+  const duration = prefs?.duration ?? "weekly";
+  const rawBudget = prefs?.rawBudget ?? weekBudget;
 
+  // Period window depends on duration
+  const daysBack = duration === "monthly" ? 30 : duration === "biweekly" ? 14 : 7;
+  const periodLabel = duration === "monthly" ? "This month" : duration === "biweekly" ? "This bi-week" : "This week";
+  const periodStart = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
+  const periodRecords = history.filter(r => new Date(r.date) >= periodStart);
+  const periodSpent = periodRecords.reduce((s, r) => s + r.total, 0);
+  const periodBudget = rawBudget > 0 ? rawBudget : weekBudget;
+
+  // Monthly always looks at calendar month
+  const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthRecords = history.filter(r => new Date(r.date) >= monthAgo);
   const monthlySavings = monthRecords.reduce((s, r) => s + r.savings, 0);
 
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const weekRecords = history.filter(r => new Date(r.date) >= weekAgo);
-  const weekSpent = weekRecords.reduce((s, r) => s + r.total, 0);
-
   const totalItems = monthRecords.reduce((s, r) => s + r.itemCount, 0) || 1;
   const totalJunk = monthRecords.reduce((s, r) => s + r.junkCount, 0);
-  const junkReductionPct = Math.round(Math.max(0, 1 - totalJunk / totalItems) * 100) - 70; // baseline-adjusted demo metric
+  const junkReductionPct = Math.round(Math.max(0, 1 - totalJunk / totalItems) * 100) - 70;
   const healthierSwaps = monthRecords.reduce((s, r) => s + r.healthySwaps, 0);
 
-  const budgetAdherence = Math.min(1, (weekBudget * 4 - monthRecords.reduce((s, r) => s + r.total, 0)) / (weekBudget * 4 || 1));
+  const budgetAdherence = periodBudget > 0
+    ? Math.min(1, (periodBudget - periodSpent) / periodBudget)
+    : 0;
   const efficiencyScore = Math.round(
-    Math.max(0, Math.min(100,
-      40 + budgetAdherence * 30 + Math.min(30, monthlySavings),
-    ))
+    Math.max(0, Math.min(100, 40 + budgetAdherence * 30 + Math.min(30, monthlySavings)))
   );
 
   const insights: string[] = [];
@@ -53,10 +70,11 @@ export function buildDashboard(history: PurchaseRecord[], weekBudget: number): D
   if (!insights.length) insights.push("Plan your first AI shop to start tracking savings.");
 
   return {
-    weekBudget,
-    weekSpent: +weekSpent.toFixed(2),
-    weekRemaining: +Math.max(0, weekBudget - weekSpent).toFixed(2),
-    weekUsedPct: Math.min(100, Math.round((weekSpent / weekBudget) * 100)),
+    periodLabel,
+    periodBudget: +periodBudget.toFixed(2),
+    periodSpent: +periodSpent.toFixed(2),
+    periodRemaining: +Math.max(0, periodBudget - periodSpent).toFixed(2),
+    periodUsedPct: periodBudget > 0 ? Math.min(100, Math.round((periodSpent / periodBudget) * 100)) : 0,
     monthlySavings: +monthlySavings.toFixed(2),
     projectedNextMonthSavings: +(monthlySavings * 1.08).toFixed(2),
     smartTip: TIPS[history.length % TIPS.length],
@@ -65,5 +83,10 @@ export function buildDashboard(history: PurchaseRecord[], weekBudget: number): D
     healthierSwaps,
     efficiencyScore,
     insights,
+    // backwards compat aliases
+    weekBudget: periodBudget,
+    weekSpent: +periodSpent.toFixed(2),
+    weekRemaining: +Math.max(0, periodBudget - periodSpent).toFixed(2),
+    weekUsedPct: periodBudget > 0 ? Math.min(100, Math.round((periodSpent / periodBudget) * 100)) : 0,
   };
 }

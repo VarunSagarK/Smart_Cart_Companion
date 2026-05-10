@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
-import { Search, Sparkles, Tag, ChevronRight, AlertCircle, Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Sparkles, Tag, ChevronRight, AlertCircle, Plus } from "lucide-react";
+import { itemRating, itemReviewCount } from "@/lib/ratings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Screen } from "@/components/Screen";
@@ -8,42 +9,25 @@ import { CATALOG } from "@/lib/mockCatalog";
 import { buildDashboard } from "@/lib/dashboardEngine";
 import { toast } from "sonner";
 
-// Per-item emoji so each card looks different
-const ITEM_EMOJI: Record<string, string> = {
-  p1: "🍌", p2: "🍎", p3: "🥬", p4: "🍅", p5: "🥕", p6: "🥑", p7: "🥦",
-  d1: "🥛", d2: "🥚", d3: "🫙", d4: "🧀", d5: "🥛",
-  pa1: "🍚", pa2: "🍝", pa3: "🫘", pa4: "🫒", pa5: "🥣", pa6: "🧂", pa7: "🍯", pa8: "🥫",
-  sn1: "🍫", sn2: "🍿", sn3: "🥜", sn4: "🧃", sn5: "🍪", sn6: "🥨",
-  b1: "☕", b2: "🧃", b3: "💧", b4: "🧋",
-  pr1: "🍗", pr2: "🐟", pr3: "🥩", pr4: "🌱", pr5: "🥚",
-};
-
-const DEPARTMENTS = [
-  { name: "Grocery", emoji: "🛒" },
-  { name: "Fresh", emoji: "🥬" },
-  { name: "Pantry", emoji: "🥫" },
-  { name: "Snacks", emoji: "🍿" },
-  { name: "Drinks", emoji: "🥤" },
-  { name: "Household", emoji: "🧴" },
+// ── Non-food promo banners ─────────────────────────────────────────────────
+const PROMO_BANNERS = [
+  { emoji: "📱", label: "Electronics Sale", sublabel: "Up to 40% off TVs & laptops", color: "from-slate-700 to-slate-900", dept: "electronics" },
+  { emoji: "👗", label: "Fashion Deals", sublabel: "New arrivals from $9.97", color: "from-pink-500 to-rose-600", dept: "clothing" },
+  { emoji: "🧸", label: "Toys & Games", sublabel: "Rollbacks on top brands", color: "from-purple-500 to-violet-700", dept: "toys" },
+  { emoji: "🌿", label: "Outdoor Living", sublabel: "Patio & garden clearance", color: "from-green-600 to-emerald-800", dept: "outdoor" },
 ];
 
 const Index = () => {
+  const nav = useNavigate();
   const { state, addItemsToBasket } = useStore();
-  const deals = CATALOG.filter(c => c.onSale).slice(0, 6);
-  const dash = buildDashboard(state.history, state.prefs.weeklyBudget);
+  const deals = CATALOG.filter(c => c.onSale).slice(0, 8);
+  const dash = buildDashboard(state.history, state.prefs.weeklyBudget, state.prefs);
   const today = new Date();
   const daysLeftInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() - today.getDate();
-  const showEom = state.history.length > 0 && (dash.weekUsedPct >= 80 || daysLeftInMonth <= 7);
+  const showEom = state.history.length > 0 && (dash.periodUsedPct >= 80 || daysLeftInMonth <= 7);
 
   return (
-    <Screen title="Walmart" subtitle="How do you want to save today?">
-      {/* search bar */}
-      <Link
-        to="/search"
-        className="flex items-center gap-2 px-3 py-2.5 rounded-full bg-secondary text-muted-foreground text-sm"
-      >
-        <Search className="size-4" /> Search Walmart
-      </Link>
+    <Screen title="Walmart" subtitle="How do you want to save today?" showSearch>
 
       {/* End-of-month contextual helper */}
       {showEom && (
@@ -65,7 +49,7 @@ const Index = () => {
         </Card>
       )}
 
-      {/* AI hero — emphasized entry to AI grocery planner */}
+      {/* AI hero */}
       <Link to="/ai" className="block">
         <Card className="bg-gradient-to-br from-walmart-blue to-walmart-blue-dark text-primary-foreground border-0 overflow-hidden shadow-lg relative">
           <div className="absolute -right-6 -top-6 size-32 rounded-full bg-walmart-yellow/20 blur-2xl" />
@@ -96,15 +80,20 @@ const Index = () => {
         </Card>
       </Link>
 
-      {/* Departments */}
+      {/* Non-food promo banners */}
       <div>
-        <p className="text-sm font-semibold mb-2">Shop by department</p>
-        <div className="grid grid-cols-3 gap-2">
-          {DEPARTMENTS.map(d => (
-            <div key={d.name} className="aspect-square rounded-lg bg-secondary flex flex-col items-center justify-center text-center">
-              <span className="text-2xl">{d.emoji}</span>
-              <span className="text-xs font-medium mt-1">{d.name}</span>
-            </div>
+        <p className="text-sm font-semibold mb-2">Featured promotions</p>
+        <div className="grid grid-cols-2 gap-2">
+          {PROMO_BANNERS.map(p => (
+            <button
+              key={p.dept}
+              onClick={() => nav("/browse")}
+              className={`bg-gradient-to-br ${p.color} rounded-xl p-3 text-white text-left flex flex-col gap-1 active:opacity-80 transition`}
+            >
+              <span className="text-2xl">{p.emoji}</span>
+              <p className="text-xs font-bold leading-tight">{p.label}</p>
+              <p className="text-[10px] text-white/80 leading-tight">{p.sublabel}</p>
+            </button>
           ))}
         </div>
       </div>
@@ -124,13 +113,24 @@ const Index = () => {
             <Card key={d.id} className="overflow-hidden">
               <CardContent className="p-3 flex flex-col gap-1.5">
                 <div className="aspect-square w-full rounded-md bg-secondary flex items-center justify-center text-5xl">
-                  {ITEM_EMOJI[d.id] ?? "🛒"}
+                  {d.emoji ?? "🛒"}
                 </div>
                 <p className="text-xs font-medium leading-tight line-clamp-2">{d.name}</p>
                 <p className="text-[11px] text-muted-foreground truncate">{d.brand}</p>
+                {/* Star ratings */}
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: Math.round(itemRating(d.id)) }).map((_, i) => (
+                    <span key={`f${i}`} className="text-[10px] text-yellow-400">★</span>
+                  ))}
+                  {Array.from({ length: 5 - Math.round(itemRating(d.id)) }).map((_, i) => (
+                    <span key={`e${i}`} className="text-[10px] text-muted-foreground/40">★</span>
+                  ))}
+                  <span className="text-[9px] text-muted-foreground ml-0.5">{itemRating(d.id)} ({itemReviewCount(d.id) > 999 ? `${(itemReviewCount(d.id)/1000).toFixed(1)}k` : itemReviewCount(d.id)})</span>
+                </div>
                 <div className="flex items-baseline gap-1">
                   <span className="text-sm font-bold text-walmart-blue">${d.price.toFixed(2)}</span>
                   <span className="text-[11px] line-through text-muted-foreground">${d.basePrice.toFixed(2)}</span>
+                  <span className="text-[10px] font-semibold text-red-500 ml-auto">-{Math.round(((d.basePrice-d.price)/d.basePrice)*100)}%</span>
                 </div>
                 <button
                   onClick={() => { addItemsToBasket([d]); toast.success(`${d.name} added`); }}
@@ -143,6 +143,7 @@ const Index = () => {
           ))}
         </div>
       </div>
+
     </Screen>
   );
 };

@@ -1,4 +1,4 @@
-export type Category = "produce" | "dairy" | "pantry" | "snacks" | "beverages" | "protein";
+export type Category = "produce" | "dairy" | "pantry" | "snacks" | "beverages" | "protein" | "frozen" | "bakery" | "household";
 
 export type DietId =
   | "vegetarian"
@@ -90,6 +90,9 @@ export interface CatalogItem {
   healthScore: number;   // 0-10
   isJunk?: boolean;
   bulk?: boolean;
+  emoji?: string;           // unique per-item display emoji
+  rating?: number;          // 1.0–5.0
+  reviewCount?: number;     // number of reviews
   tags?: string[];          // diet tags
   cuisines?: FoodTypeId[];  // food-type tags
 }

@@ -1,31 +1,54 @@
-import { Heart, Plus, Tag } from "lucide-react";
+import { Heart, Plus, Leaf, DollarSign } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { CatalogItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/contexts/DemoStoreContext";
 import { toast } from "sonner";
+import { itemRating, itemReviewCount } from "@/lib/ratings";
 
 interface Props {
   item: CatalogItem;
   selected?: boolean;
   onToggle?: (id: string) => void;
   showCheckbox?: boolean;
+  reason?: string;
 }
 
-const EMOJI: Record<string, string> = {
+const CATEGORY_EMOJI: Record<string, string> = {
   produce: "🥬",
   dairy: "🥛",
   pantry: "🥫",
   snacks: "🍿",
   beverages: "🥤",
   protein: "🍗",
+  frozen: "🧊",
+  bakery: "🍞",
+  household: "🧴",
 };
 
-export const ProductCard = ({ item, selected, onToggle, showCheckbox = true }: Props) => {
+function StarRow({ id }: { id: string }) {
+  const rating = itemRating(id);
+  const reviews = itemReviewCount(id);
+  const fullStars = Math.round(rating);
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: fullStars }).map((_, i) => (
+        <span key={`f${i}`} className="text-[11px] text-yellow-400">★</span>
+      ))}
+      {Array.from({ length: 5 - fullStars }).map((_, i) => (
+        <span key={`e${i}`} className="text-[11px] text-muted-foreground/40">★</span>
+      ))}
+      <span className="text-[10px] text-muted-foreground ml-0.5">{rating} ({reviews > 999 ? `${(reviews / 1000).toFixed(1)}k` : reviews})</span>
+    </div>
+  );
+}
+
+export const ProductCard = ({ item, selected, onToggle, showCheckbox = true, reason }: Props) => {
   const { state, addItemsToBasket, toggleWishlist } = useStore();
   const saving = +(item.basePrice - item.price).toFixed(2);
   const onSale = item.onSale && saving > 0;
+  const savingPct = onSale ? Math.round((saving / item.basePrice) * 100) : 0;
   const wished = state.wishlist.includes(item.id);
 
   const handleAdd = (e: React.MouseEvent) => {
@@ -69,29 +92,52 @@ export const ProductCard = ({ item, selected, onToggle, showCheckbox = true }: P
       >
         <Heart className={cn("size-3.5", wished ? "fill-destructive text-destructive" : "text-muted-foreground")} />
       </button>
+
+      {/* Discount badge — shown on all sale items */}
       {onSale && (
-        <Badge className="absolute top-10 right-2 z-10 bg-walmart-yellow text-walmart-blue-dark hover:bg-walmart-yellow text-[10px] px-1.5 py-0.5 gap-1">
-          <Tag className="size-2.5" /> Save ${saving.toFixed(2)}
-        </Badge>
+        <div className="absolute top-10 right-2 z-10 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md leading-tight">
+          -{savingPct}%
+        </div>
       )}
+
       <div className="aspect-square w-full rounded-md bg-secondary flex items-center justify-center text-5xl">
-        {EMOJI[item.category] ?? "🛒"}
+        {item.emoji ?? CATEGORY_EMOJI[item.category] ?? "🛒"}
       </div>
+
+      {/* Price row */}
       <div className="flex items-baseline gap-1">
         <span className="text-base font-bold text-walmart-blue-dark">${item.price.toFixed(2)}</span>
         {onSale && (
           <span className="text-[11px] line-through text-muted-foreground">${item.basePrice.toFixed(2)}</span>
         )}
+        {onSale && (
+          <span className="text-[10px] font-semibold text-red-500 ml-auto">Save ${saving.toFixed(2)}</span>
+        )}
       </div>
+
       <p className="text-xs font-medium leading-tight line-clamp-2 min-h-[2rem]">{item.name}</p>
       <p className="text-[11px] text-muted-foreground truncate">{item.brand} · {item.unit}</p>
-      {item.healthScore >= 8 && (
-        <span className="text-[10px] font-semibold text-success uppercase">Healthy pick</span>
+
+      {/* Star ratings */}
+      <StarRow id={item.id} />
+
+      {/* AI reason chip */}
+      {reason && (
+        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-walmart-blue/10 text-walmart-blue w-fit">
+          {item.healthScore >= 8 ? <Leaf className="size-2.5" /> : <DollarSign className="size-2.5" />}
+          {reason}
+        </span>
       )}
+      {!reason && item.healthScore >= 8 && (
+        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-600">
+          <Leaf className="size-2.5" /> Healthy pick
+        </span>
+      )}
+
       <button
         type="button"
         onClick={handleAdd}
-        className="mt-1 w-full h-8 rounded-full bg-walmart-blue text-primary-foreground text-xs font-bold flex items-center justify-center gap-1 hover:bg-walmart-blue-dark transition"
+        className="mt-auto w-full h-8 rounded-full bg-walmart-blue text-primary-foreground text-xs font-bold flex items-center justify-center gap-1 hover:bg-walmart-blue-dark transition"
       >
         <Plus className="size-3.5" /> Add
       </button>

@@ -10,8 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Screen } from "@/components/Screen";
 import { useStore } from "@/contexts/DemoStoreContext";
-import { buildAllStrategies } from "@/lib/budgetEngine";
-import { ALL_BRANDS, CATALOG, KITCHEN_BASICS } from "@/lib/mockCatalog";
+// budgetEngine used in Results page only
+import { ALL_BRANDS, KITCHEN_BASICS } from "@/lib/mockCatalog";
 import { generateAIBasket } from "@/lib/aiPlanner";
 import { ynabAuthUrl } from "@/lib/ynab";
 import {
@@ -225,28 +225,15 @@ const AIGenerating = ({ explanation }: { explanation: string }) => (
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 6;
 
 const AIOnboarding = () => {
   const nav = useNavigate();
   const location = useLocation();
-  const { state, setPrefs, setBasket } = useStore();
+  const { state, setPrefs, clearBasket } = useStore();
 
-  // If user explicitly restarted, skip the redirect below
-  const didRestart = (location.state as { restart?: boolean } | null)?.restart === true;
-
-  // If we already have a generated basket (and user didn't restart),
-  // go straight back to results so they don't lose their work
-  useEffect(() => {
-    if (!didRestart && state.basket && state.basket.lines.length > 0 && state.onboarded) {
-      nav("/results", {
-        state: { prefs: state.prefs, strategy: state.basket.strategy },
-        replace: true,
-      });
-    }
-  // Only run on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Intentionally no auto-redirect to Results — user must explicitly tap "Build my basket".
+  // This prevents the cart from appearing pre-populated on return visits.
 
   const ynabBudgetFromRedirectInit = (location.state as { ynabBudget?: number } | null)?.ynabBudget ?? null;
 
@@ -332,6 +319,7 @@ const AIOnboarding = () => {
     };
 
     setPrefs(prefs);
+    clearBasket(); // always start fresh — cart only gets items when user taps "Add X to cart"
     setGenerating(true);
 
     try {
@@ -341,24 +329,9 @@ const AIOnboarding = () => {
       // Give user a moment to read the explanation
       await new Promise(r => setTimeout(r, 800));
 
-      // Build the basket using the AI-selected IDs on the chosen strategy
-      const allStrategies = buildAllStrategies(prefs, CATALOG);
-      const baseBasket = allStrategies[result.strategy];
-
-      // Filter to AI-selected items if AI was used and returned IDs
-      const finalBasket = result.usedAI && result.selectedIds.length > 0
-        ? {
-            ...baseBasket,
-            lines: baseBasket.lines.filter(l => result.selectedIds.includes(l.item.id)),
-          }
-        : baseBasket;
-
-      setBasket(finalBasket);
+      // Navigate to Results — cart is empty, user selects items explicitly.
       nav("/results", { state: { prefs, strategy: result.strategy } });
     } catch {
-      // Graceful fallback
-      const allStrategies = buildAllStrategies(prefs, CATALOG);
-      setBasket(allStrategies.healthiest);
       nav("/results", { state: { prefs, strategy: "healthiest" } });
     } finally {
       setGenerating(false);
@@ -394,7 +367,7 @@ const AIOnboarding = () => {
           <div>
             <p className="font-bold">Hi! Let's build your basket together.</p>
             <p className="text-xs text-white/85 mt-1">
-              Fill in a few details and our AI will build an optimized basket from this week's deals.
+              Fill in a few details and our AI will help build your basket and save money so you can live better.
             </p>
           </div>
           {import.meta.env.VITE_OPENAI_API_KEY ? (
@@ -469,7 +442,14 @@ const AIOnboarding = () => {
                   <CheckCircle2 className="size-4 text-green-600" />
                   <button
                     type="button"
-                    onClick={() => { setYnabConnected(false); setYnabBudget(null); setBudgetSource("manual"); localStorage.removeItem("ynab_connection"); }}
+                    onClick={() => {
+                      setYnabConnected(false);
+                      setYnabBudget(null);
+                      setBudget(state.prefs.rawBudget ?? state.prefs.weeklyBudget ?? 150);
+                      setBudgetSource("manual");
+                      localStorage.removeItem("ynab_connection");
+                      localStorage.removeItem("ynab_token");
+                    }}
                     className="text-[10px] text-red-500 font-semibold hover:underline"
                   >
                     Disconnect
@@ -534,14 +514,14 @@ const AIOnboarding = () => {
           <div className="grid grid-cols-2 gap-2 mt-2">
             {hh.kids > 0 && (
               <div>
-                <Label className="text-[11px] text-muted-foreground">Kids ages (optional)</Label>
-                <Input placeholder="e.g. 4, 9" value={hh.kidsAges ?? ""} onChange={e => setHh(h => ({ ...h, kidsAges: e.target.value }))} className="h-9 text-sm mt-1" />
+                <Label className="text-[11px] text-muted-foreground">Avg Kids Age (optional)</Label>
+                <Input placeholder="e.g. 8" value={hh.kidsAges ?? ""} onChange={e => setHh(h => ({ ...h, kidsAges: e.target.value }))} className="h-9 text-sm mt-1" />
               </div>
             )}
             {hh.seniors > 0 && (
               <div>
-                <Label className="text-[11px] text-muted-foreground">Seniors ages (optional)</Label>
-                <Input placeholder="e.g. 68, 72" value={hh.seniorsAges ?? ""} onChange={e => setHh(h => ({ ...h, seniorsAges: e.target.value }))} className="h-9 text-sm mt-1" />
+                <Label className="text-[11px] text-muted-foreground">Avg Senior Age (optional)</Label>
+                <Input placeholder="e.g. 68" value={hh.seniorsAges ?? ""} onChange={e => setHh(h => ({ ...h, seniorsAges: e.target.value }))} className="h-9 text-sm mt-1" />
               </div>
             )}
           </div>
@@ -549,51 +529,40 @@ const AIOnboarding = () => {
         {totalPeople < 1 && <p className="text-xs text-destructive mt-2">Add at least one person.</p>}
       </Section>
 
-      {/* 4 — Food Types */}
-      <Section step={4} totalSteps={TOTAL_STEPS} title="What kind of foods do you enjoy?" hint="Pick a few to shape AI suggestions.">
-        <div className="flex flex-wrap gap-2">
-          {FOOD_TYPES.map(f => (
-            <Chip key={f.id} active={foodTypes.includes(f.id)} onClick={() => toggleFood(f.id)} emoji={f.emoji}>
-              {f.label}
-            </Chip>
-          ))}
+      {/* 4 — Food Types — elegant grid */}
+      <Section step={4} totalSteps={TOTAL_STEPS} title="What kind of foods do you enjoy?" hint="Select all that apply. AI will match deals to your taste.">
+        <div className="grid grid-cols-3 gap-2">
+          {FOOD_TYPES.map(f => {
+            const active = foodTypes.includes(f.id);
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => toggleFood(f.id)}
+                className={cn(
+                  "rounded-xl border p-2.5 flex flex-col items-center gap-1 text-center transition",
+                  active
+                    ? "border-walmart-blue bg-walmart-blue/5 ring-1 ring-walmart-blue/30"
+                    : "border-border bg-background hover:bg-secondary",
+                )}
+              >
+                <span className="text-2xl leading-none">{f.emoji}</span>
+                <span className={cn("text-[10px] font-semibold leading-tight", active ? "text-walmart-blue" : "text-foreground/80")}>
+                  {f.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
+        {foodTypes.length > 0 && (
+          <button type="button" onClick={() => setFoodTypes([])} className="mt-2 text-[11px] text-muted-foreground hover:text-destructive transition">
+            Clear selection
+          </button>
+        )}
       </Section>
 
-      {/* 5 — Diets */}
-      <Section step={5} totalSteps={TOTAL_STEPS} title="Any dietary preferences?" hint="Multi-select. AI will respect these strictly.">
-        <div className="flex flex-wrap gap-2">
-          {DIETS.map(d => (
-            <Chip key={d.id} active={diets.includes(d.id)} onClick={() => toggleDiet(d.id)} emoji={d.emoji}>
-              {d.label}
-            </Chip>
-          ))}
-        </div>
-      </Section>
-
-      {/* 6 — Motivation */}
-      <Section step={6} totalSteps={TOTAL_STEPS} title="What's your main goal this shop?" hint="AI will prioritize items that match.">
-        <div className="grid grid-cols-2 gap-2">
-          {MOTIVATIONS.map(m => (
-            <button
-              key={m.id}
-              onClick={() => setMotivation(m.id)}
-              className={cn(
-                "rounded-lg border p-2.5 text-left text-xs font-medium transition flex items-center gap-2",
-                motivation === m.id
-                  ? "border-walmart-blue bg-walmart-blue/5 text-walmart-blue"
-                  : "border-border bg-background hover:bg-secondary",
-              )}
-            >
-              <span className="text-base">{m.emoji}</span>
-              {m.label}
-            </button>
-          ))}
-        </div>
-      </Section>
-
-      {/* 7 — Kitchen Have */}
-      <Section step={7} totalSteps={TOTAL_STEPS} title="What's already in your kitchen?" hint="Skip buying things you already have.">
+      {/* 5 — Kitchen Have */}
+      <Section step={5} totalSteps={TOTAL_STEPS} title="What's already in your kitchen?" hint="Skip buying things you already have.">
         <div className="grid grid-cols-4 gap-2">
           {KITCHEN_BASICS.map(k => {
             const active = kitchenHave.includes(k.id);
@@ -603,8 +572,8 @@ const AIOnboarding = () => {
                 type="button"
                 onClick={() => toggleHave(k.id)}
                 className={cn(
-                  "aspect-square rounded-lg border flex flex-col items-center justify-center gap-1 p-1 transition text-center",
-                  active ? "border-walmart-blue bg-walmart-blue/5" : "border-border bg-background",
+                  "aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 p-1 transition text-center",
+                  active ? "border-walmart-blue bg-walmart-blue/5 ring-1 ring-walmart-blue/30" : "border-border bg-background hover:bg-secondary",
                 )}
               >
                 <span className="text-2xl leading-none">{k.emoji}</span>
@@ -615,10 +584,10 @@ const AIOnboarding = () => {
         </div>
       </Section>
 
-      {/* 8 — Junk + Brand */}
-      <Section step={8} totalSteps={TOTAL_STEPS} title="Final preferences">
+      {/* 6 — Final preferences: Junk + Brands */}
+      <Section step={6} totalSteps={TOTAL_STEPS} title="Final preferences">
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+          <div className="flex items-center justify-between rounded-xl border border-border p-3 bg-background">
             <div>
               <p className="text-sm font-medium">Avoid junk food</p>
               <p className="text-xs text-muted-foreground">
@@ -627,16 +596,31 @@ const AIOnboarding = () => {
             </div>
             <Switch checked={avoidJunk} onCheckedChange={setAvoidJunk} />
           </div>
+
+          {/* Brands — elegant grid */}
           <div>
-            <Label className="text-xs text-muted-foreground">
-              Preferred brands (optional){brands.length > 0 && <span className="ml-1 text-walmart-blue font-semibold">· {brands.length} selected</span>}
-            </Label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {SORTED_BRANDS.map(b => (
-                <Chip key={b} active={brands.includes(b)} onClick={() => toggleBrand(b)}>
-                  {b}
-                </Chip>
-              ))}
+            <p className="text-xs font-semibold text-muted-foreground mb-2">
+              Preferred brands (optional){brands.length > 0 && <span className="ml-1 text-walmart-blue">· {brands.length} selected</span>}
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {SORTED_BRANDS.map(b => {
+                const active = brands.includes(b);
+                return (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => toggleBrand(b)}
+                    className={cn(
+                      "rounded-xl border py-2 px-2 text-center text-[11px] font-semibold transition",
+                      active
+                        ? "border-walmart-blue bg-walmart-blue/5 text-walmart-blue ring-1 ring-walmart-blue/30"
+                        : "border-border bg-background text-foreground/80 hover:bg-secondary",
+                    )}
+                  >
+                    {b}
+                  </button>
+                );
+              })}
             </div>
             {brands.length > 0 && (
               <button
@@ -674,6 +658,14 @@ const AIOnboarding = () => {
         ) : (
           <><Sparkles className="size-4 mr-2" /> Build my basket{import.meta.env.VITE_OPENAI_API_KEY ? " with AI" : ""}</>
         )}
+      </Button>
+
+      <Button
+        variant="outline"
+        onClick={() => nav("/")}
+        className="w-full h-11 font-semibold"
+      >
+        Back to Home
       </Button>
     </Screen>
   );
