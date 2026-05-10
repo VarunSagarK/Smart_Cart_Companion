@@ -170,7 +170,7 @@ const Basket = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => { setShowOverBudgetDialog(false); nav("/checkout"); }}
+                onClick={() => { setShowOverBudgetDialog(false); nav("/checkout", { state: { overBudget } }); }}
                 className="border-red-300 text-red-500 hover:bg-red-50 font-semibold"
               >
                 Yes, proceed

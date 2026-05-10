@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   CheckCircle2,
   Loader2,
@@ -10,6 +10,7 @@ import {
   Banknote,
   RefreshCw,
   ChevronDown,
+  BellRing,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,9 +37,13 @@ const EMOJI: Record<string, string> = {
 
 const Checkout = () => {
   const nav = useNavigate();
+  const location = useLocation();
   const { state, recordPurchase, cartCount } = useStore();
   const { connected: plaidConnected, kohoBalance, mockConnect: mockPlaidConnect } = usePlaid();
   const { connected: ynabConnected, groceryBalance, syncSpend, mockConnect: mockYnabConnect } = useYnab();
+
+  // Over-budget value passed from Cart when user confirmed "Yes, proceed"
+  const overBudgetAmount: number = (location.state as { overBudget?: number })?.overBudget ?? 0;
 
   const [step, setStep] = useState<CheckoutStep>("review");
   const [orderId] = useState(() => `WMT-${Date.now().toString(36).toUpperCase()}`);
@@ -46,6 +51,8 @@ const Checkout = () => {
   // Snapshot the basket before recordPurchase clears it
   const [confirmedBasket, setConfirmedBasket] = useState<Basket | null>(null);
   const [showOrderItems, setShowOrderItems] = useState(false);
+  // Reminder prompt state: null = not answered, true = accepted, false = declined
+  const [reminderAnswer, setReminderAnswer] = useState<boolean | null>(null);
 
   const basket = state.basket;
 
@@ -145,7 +152,7 @@ const Checkout = () => {
         </Card>
 
         {/* Receipt */}
-        <Card>
+        <Card className={overBudgetAmount > 0 ? "border-red-200" : ""}>
           <CardContent className="p-4 space-y-3">
             <p className="text-sm font-bold">Receipt</p>
             <div className="space-y-1.5 text-sm">
@@ -166,9 +173,64 @@ const Checkout = () => {
                 <span>Total charged</span>
                 <span className="text-walmart-blue">${total.toFixed(2)}</span>
               </div>
+              {overBudgetAmount > 0 && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between text-xs text-red-500 font-semibold pt-0.5">
+                    <span className="flex items-center gap-1">
+                      <AlertCircle className="size-3.5 shrink-0" />
+                      Over budget
+                    </span>
+                    <span>+${overBudgetAmount.toFixed(2)}</span>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Budget reminder prompt — only shown when over budget and not yet answered */}
+        {overBudgetAmount > 0 && reminderAnswer === null && (
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <BellRing className="size-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs font-semibold text-amber-800">
+                  Would you like us to remind you to stay within budget next time?
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  className="bg-walmart-blue hover:bg-walmart-blue-dark text-primary-foreground font-bold h-9"
+                  onClick={() => setReminderAnswer(true)}
+                >
+                  Yes, remind me
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 font-semibold"
+                  onClick={() => setReminderAnswer(false)}
+                >
+                  No, thanks
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Reminder response message */}
+        {overBudgetAmount > 0 && reminderAnswer === true && (
+          <Card className="border-green-200 bg-green-50">
+            <CardContent className="p-3 flex items-center gap-2">
+              <CheckCircle2 className="size-4 text-green-600 shrink-0" />
+              <p className="text-xs text-green-800 font-medium">
+                We will be happy to remind you and help stay in your limit 🙂
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* View order items — collapsible */}
         <Card>
