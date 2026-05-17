@@ -442,7 +442,7 @@ const Checkout = () => {
             <div className="flex-1">
               <p className="text-xs font-semibold">YNAB · {groceryBalance.name}</p>
               <p className="text-[11px] text-muted-foreground">
-                ${groceryBalance.remaining.toFixed(2)} remaining · after this order: ${Math.max(0, groceryBalance.remaining - total).toFixed(2)}
+                Budget Assigned: ${groceryBalance.budgeted.toFixed(2)} · Budget Remaining: ${Math.max(0, groceryBalance.remaining - total).toFixed(2)}
               </p>
             </div>
             {total > groceryBalance.remaining && (
