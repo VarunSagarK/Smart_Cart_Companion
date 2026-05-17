@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Screen } from "@/components/Screen";
 import { useStore } from "@/contexts/DemoStoreContext";
+import { useYnab } from "@/hooks/useYnab";
 // budgetEngine used in Results page only
 import { ALL_BRANDS, KITCHEN_BASICS } from "@/lib/mockCatalog";
 import { generateAIBasket } from "@/lib/aiPlanner";
@@ -231,6 +232,7 @@ const AIOnboarding = () => {
   const nav = useNavigate();
   const location = useLocation();
   const { state, setPrefs, clearBasket } = useStore();
+  const { connected: ynabConnectedHook, groceryBalance, disconnect: ynabDisconnectHook, mockConnect: ynabMockConnect } = useYnab();
 
   // Intentionally no auto-redirect to Results — user must explicitly tap "Build my basket".
   // This prevents the cart from appearing pre-populated on return visits.
@@ -267,9 +269,33 @@ const AIOnboarding = () => {
   const toggleBrand = (b: string) =>
     setBrands(prev => prev.includes(b) ? prev.filter(x => x !== b) : [...prev, b]);
 
-  // YNAB state — only pre-connect if budget just came in from OAuth redirect
-  const [ynabConnected, setYnabConnected] = useState(ynabBudgetFromRedirectInit !== null);
-  const [ynabBudget, setYnabBudget] = useState<number | null>(ynabBudgetFromRedirectInit);
+  // YNAB state — driven by the hook (shared source of truth across all pages)
+  const [ynabBudgetOverride, setYnabBudgetOverride] = useState<number | null>(ynabBudgetFromRedirectInit);
+  const ynabConnected = ynabConnectedHook;
+  const ynabBudget = ynabBudgetOverride ?? groceryBalance?.remaining ?? null;
+  const setYnabBudget = setYnabBudgetOverride;
+
+  // Full YNAB disconnect: clears hook storage + all app data + resets form to defaults
+  const handleYnabDisconnect = () => {
+    ynabDisconnectHook();
+    localStorage.removeItem("ynab_token");
+    localStorage.removeItem("walmart-ai-demo-v3");
+    setYnabBudgetOverride(null);
+    setBudgetSource("manual");
+    setBudget(150);
+    setBudgetStr("150");
+    setDuration("weekly");
+    setHh({ adults: 2, seniors: 0, kids: 0 });
+    setDiets([]);
+    setFoodTypes([]);
+    setKitchenHave([]);
+    setAvoidJunk(false);
+    setBrands([]);
+    clearBasket();
+  };
+
+  // Thin wrapper kept for existing call sites inside the JSX
+  const setYnabConnected = (v: boolean) => { if (!v) handleYnabDisconnect(); };
 
   // AI generation state
   const [generating, setGenerating] = useState(false);
@@ -300,7 +326,7 @@ const AIOnboarding = () => {
 
   const handleMockYnabConnect = () => {
     const mockRemaining = +(budget * 0.85).toFixed(2);
-    setYnabConnected(true);
+    ynabMockConnect(mockRemaining);
     setYnabBudget(mockRemaining);
     setBudgetSource("ynab");
   };
@@ -448,16 +474,7 @@ const AIOnboarding = () => {
                   <CheckCircle2 className="size-4 text-green-600" />
                   <button
                     type="button"
-                    onClick={() => {
-                      setYnabConnected(false);
-                      setYnabBudget(null);
-                      const fallback = state.prefs.rawBudget ?? state.prefs.weeklyBudget ?? 150;
-                      setBudget(fallback);
-                      setBudgetStr(String(fallback));
-                      setBudgetSource("manual");
-                      localStorage.removeItem("ynab_connection");
-                      localStorage.removeItem("ynab_token");
-                    }}
+                    onClick={handleYnabDisconnect}
                     className="text-[10px] text-red-500 font-semibold hover:underline"
                   >
                     Disconnect

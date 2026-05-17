@@ -120,6 +120,8 @@ const Account = () => {
                     onClick={() => {
                       ynabDisconnect();
                       localStorage.removeItem("ynab_token");
+                      localStorage.removeItem("walmart-ai-demo-v3");
+                      location.reload();
                     }}
                     className="text-xs font-semibold text-red-500 hover:underline"
                   >
