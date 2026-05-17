@@ -1,9 +1,10 @@
-import { ChevronRight, Heart, MapPin, CreditCard, Package, Bell, HelpCircle, LogOut, User, Loader2 } from "lucide-react";
+import { ChevronRight, Heart, MapPin, CreditCard, Package, Bell, HelpCircle, LogOut, User, Loader2, CheckCircle2, Unplug } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Screen } from "@/components/Screen";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/contexts/DemoStoreContext";
 import { useYnab } from "@/hooks/useYnab";
+import { usePlaid } from "@/hooks/usePlaid";
 
 const ROW_GROUPS = [
   {
@@ -33,7 +34,8 @@ const Account = () => {
   const { state } = useStore();
   const p = state.prefs;
   // This call handles the ?code= YNAB OAuth callback and redirects to /ai
-  const { loading: ynabLoading } = useYnab();
+  const { loading: ynabLoading, connected: ynabConnected, disconnect: ynabDisconnect } = useYnab();
+  const { connected: plaidConnected, disconnect: plaidDisconnect } = usePlaid();
 
   // Show a brief loading screen while the YNAB token exchange is happening
   if (ynabLoading) {
@@ -93,6 +95,71 @@ const Account = () => {
         </CardContent>
       </Card>
 
+      {/* Integrations */}
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 px-1">
+          Integrations
+        </p>
+        <Card>
+          <CardContent className="p-0 divide-y divide-border">
+            {/* YNAB */}
+            <div className="flex items-center gap-3 px-4 py-3.5">
+              <div className="size-8 rounded flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: "#85B934" }}>
+                Y
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">YNAB</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {ynabConnected ? "Connected — budget synced" : "Not connected"}
+                </p>
+              </div>
+              {ynabConnected ? (
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+                  <button
+                    onClick={() => {
+                      ynabDisconnect();
+                      localStorage.removeItem("ynab_token");
+                    }}
+                    className="text-xs font-semibold text-red-500 hover:underline"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              ) : (
+                <span className="text-xs text-muted-foreground">—</span>
+              )}
+            </div>
+
+            {/* KOHO / Plaid */}
+            <div className="flex items-center gap-3 px-4 py-3.5">
+              <div className="size-8 rounded bg-[#2C3E50] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                K
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">KOHO</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {plaidConnected ? "Connected via Plaid" : "Not connected"}
+                </p>
+              </div>
+              {plaidConnected ? (
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+                  <button
+                    onClick={plaidDisconnect}
+                    className="text-xs font-semibold text-red-500 hover:underline"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              ) : (
+                <span className="text-xs text-muted-foreground">—</span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Setting rows — Walmart-style stacked groups */}
       {ROW_GROUPS.map(group => (
         <div key={group.title}>
@@ -117,12 +184,13 @@ const Account = () => {
         </div>
       ))}
 
+      {/* Reset demo — nukes all localStorage and reloads fresh */}
       <Button
         variant="outline"
-        className="w-full"
+        className="w-full border-destructive text-destructive hover:bg-destructive/10 font-semibold"
         onClick={() => { localStorage.clear(); location.reload(); }}
       >
-        <LogOut className="size-4 mr-2" /> Reset demo data
+        <Unplug className="size-4 mr-2" /> Reset all demo data
       </Button>
     </Screen>
   );
