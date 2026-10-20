@@ -4,6 +4,8 @@ An AI grocery planner that builds a weekly Walmart basket around your budget, ch
 
 Built as a product prototype during an AI Product Management course.
 
+**Live demo:** https://budget-cart-companion.vercel.app
+
 ## 1. Product vision
 
 Help every household plan groceries that fit their budget **before** they shop, not after.
