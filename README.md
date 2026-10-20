@@ -16,8 +16,6 @@ More in [`about-the-product/product-vision.md`](about-the-product/product-vision
 - Budgeting apps such as YNAB track spending **after** it happens. Store apps help you find deals but don't know your budget.
 - Planning a week of healthy meals around a fixed budget, a household size and dietary needs is slow, manual work.
 
-> TODO: add evidence, e.g. food-inflation data or findings from user conversations.
-
 ## 3. Who it's for
 
 **Users:** budget-conscious households who shop at Walmart and want to stay on budget without giving up healthy food. They especially include people who already budget with YNAB or bank with KOHO.
@@ -46,8 +44,6 @@ Plan → Basket → Check → Buy → Review:
 | Supporting | YNAB / KOHO connection rate |
 | Guardrail | Checkout completion rate, so staying on budget doesn't make shoppers abandon carts |
 
-> TODO: set targets once there is real usage data.
-
 ## 6. MVP scope
 
 **In:** AI Grocery Planner, basket results with strategy filters, cart, checkout with KOHO and YNAB checks, Savings & Wellness dashboard, saved items, search. Every integration has a demo mode, so the app works without API keys.
@@ -55,8 +51,6 @@ Plan → Basket → Check → Buy → Review:
 **Not yet:** a real Walmart catalog (about 60 mock products for now), real payments, and a server-side proxy for the OpenAI key.
 
 ## 7. What's next
-
-> TODO: confirm priorities.
 
 - Connect a real product and deals catalog in place of the mock data.
 - Move AI calls to a server so the API key isn't in the browser.
