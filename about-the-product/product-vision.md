@@ -1,7 +1,8 @@
 # Product Vision
 
-> TODO: One sentence. Who it's for, what it helps them do, and why it matters.
-> Example shape: "For [user] who [need], Smart Cart Companion is a [category] that [key benefit]."
+Help every household plan groceries that fit their budget **before** they shop, not after.
+
+> TODO: expand each section below. The README has a short version of each.
 
 ## The problem
 
