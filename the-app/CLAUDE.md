@@ -40,7 +40,7 @@ All app state lives in `src/hooks/useDemoStore.ts`. localStorage is the primary 
 
 ### Integrations
 
-- **YNAB**: `src/hooks/useYnab.ts` manages connection state, handles the OAuth `?code=` callback on `/account`, loads grocery category balance, and exposes `syncSpend()` for post-checkout sync. Token exchange must go through a Supabase Edge Function (see `SETUP.md`).
+- **YNAB**: `src/hooks/useYnab.ts` manages connection state, handles the OAuth `?code=` callback on `/account`, loads grocery category balance, and exposes `syncSpend()` for post-checkout sync. Token exchange must go through a Supabase Edge Function (see `../setup-guide/setup-and-integrations.md`).
 - **KOHO/Plaid**: `src/hooks/usePlaid.ts` manages Plaid Link flow and surfaces a `KohoBalance` object. Real Plaid calls go through backend proxies; `mockConnect()` provides a demo mode.
 - **OpenAI**: Called directly from the browser via `dangerouslyAllowBrowser: true` for MVP simplicity. Move to a server-side proxy before production to protect the API key.
 - **Supabase Auth**: `src/contexts/AuthContext.tsx` wraps the app with a session context. `useAuth()` hook provides `signIn`, `signUp`, `signOut`.
@@ -70,4 +70,4 @@ shadcn/ui (Radix UI + Tailwind) — component source in `src/components/ui/`. `P
 
 ### Environment Variables
 
-See `.env.example` for all keys. See `SETUP.md` for step-by-step setup including Supabase SQL schema and edge function stubs for YNAB + Plaid token exchange.
+See `.env.example` for all keys. See `../setup-guide/setup-and-integrations.md` for step-by-step setup including Supabase SQL schema and edge function stubs for YNAB + Plaid token exchange.

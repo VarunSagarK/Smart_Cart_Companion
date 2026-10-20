@@ -5,12 +5,13 @@
 The app works fully without any keys — YNAB, KOHO, and AI all have "demo" fallback modes.
 
 ```bash
+cd the-app
 cp .env.example .env
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173 → tap **AI Planner** → build a basket → checkout.
+Open http://localhost:8080 → tap **AI Planner** → build a basket → checkout.
 
 ---
 
@@ -75,7 +76,7 @@ create policy "Own orders" on orders for all using (auth.uid() = user_id);
 ### 3. YNAB
 
 1. Register an OAuth app at https://app.ynab.com/settings/developer
-2. Set redirect URI to `http://localhost:5173/account` (dev)
+2. Set redirect URI to `http://localhost:8080/account` (dev)
 3. Add `VITE_YNAB_CLIENT_ID=...` to `.env`
 4. The token exchange (`/api/ynab/exchange`) needs a Supabase Edge Function that holds your `YNAB_CLIENT_SECRET` server-side
 
