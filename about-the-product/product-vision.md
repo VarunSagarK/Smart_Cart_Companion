@@ -2,7 +2,7 @@
 
 Help every household plan groceries that fit their budget **before** they shop, not after.
 
-## The problem
+## Problem Statement
 
 - Shoppers set a grocery budget, but find out they've overspent only at checkout or when the bank statement arrives.
 - Budgeting apps such as YNAB track spending **after** it happens. Store apps help you find deals but don't know your budget.
