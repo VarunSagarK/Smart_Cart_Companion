@@ -1,30 +1,43 @@
 # Product Vision
 
-Help every household plan groceries that fit their budget **before** they shop, not after.
+**Plan groceries smarter within budget.**
+
+Full details are in the [PRD](smart-cart-companion-prd.pdf).
+
+## Long-term goal
+
+A household-first AI planning ecosystem that:
+
+- automates flyer savings
+- aligns with real budgets
+- encourages healthier decisions
+- builds repeat weekly grocery habits
+- strengthens Walmart+ retention
 
 ## The problem
 
-- Shoppers set a grocery budget, but find out they've overspent only at checkout or when the bank statement arrives.
-- Budgeting apps such as YNAB track spending **after** it happens. Store apps help you find deals but don't know your budget.
-- Planning a week of healthy meals around a fixed budget, a household size and dietary needs is slow, manual work.
+- **For shoppers:** grocery planning is spread across separate tools: weekly flyers, a budgeting app, and the effort of hunting for savings. The result is overspending, missed flyer savings and decision fatigue.
+- **For Walmart:** it is excellent at fulfilling orders, but lacks proactive flyer intelligence, budget-aware planning, household optimization and a link to the household's financial tools.
 
 ## Who it's for
 
-Budget-conscious households who shop at Walmart and want to stay on budget without giving up healthy food. They especially include people who already budget with YNAB or bank with KOHO.
+Budget-conscious households, students, meal preppers and Walmart+ subscribers.
 
-## Who would pay (customers)
+## Who benefits (customer)
 
-- **Walmart:** loyal weekly shoppers and baskets built from its own deals.
-- **YNAB and KOHO:** their tools become part of the everyday shopping moment, not just the review afterwards.
+Walmart, through better Walmart+ retention, more repeat grocery orders and larger recurring baskets. Secondary: fintech referral partnerships and premium AI planning tools.
 
 ## What success looks like
 
-- **North Star:** % of baskets checked out at or under budget.
-- **Supporting:** basket acceptance rate, weekly repeat planners, YNAB / KOHO connection rate.
-- **Guardrail:** checkout completion rate, so staying on budget doesn't make shoppers abandon carts.
+- **North Star:** Weekly Repeat Grocery Planning Usage, with a target of +25% in the first 6 months of the Walmart+ beta.
+- **Business:** basket conversion +10–15%, Walmart+ retention +8–12%, flyer savings utilization +25%.
+- **User trust:** budget compliance rate > 70%.
+- **Operational:** basket generated in < 3 seconds.
+
+These are planning targets for the beta, not measured results.
 
 ## Where it's going
 
-- Connect a real product and deals catalog in place of the mock data.
-- Move AI calls to a server so the API key isn't in the browser.
-- Test with real shoppers and measure the metrics above.
+1. **Phase 1:** a Walmart+ beta for budget-conscious households and families.
+2. **Phase 2:** regional Walmart+ expansion and Smart Repeat.
+3. **Phase 3:** a full household grocery ecosystem.
