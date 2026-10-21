@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 666" width="1000" height="666" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9AA3B2"/></marker></defs>
+<rect width="1000" height="666" rx="16" fill="#F7F9FC"/>
+<circle cx="52" cy="43" r="13" fill="#FFC220"/><text x="52" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#1A1F36">1</text>
+<text x="74" y="48" font-size="17" font-weight="700" fill="#1A1F36">New user</text>
+<text x="74" y="67" font-size="12.5" fill="#5B6475">First visit: set up the planner once, then get a basket</text>
+<rect x="40.0" y="80" width="163.2" height="54" rx="10" fill="#0071DC" stroke="#0071DC" stroke-width="1.6"/>
+<text x="121.6" y="112.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">Home</text>
+<rect x="229.2" y="80" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="310.79999999999995" y="112.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">AI tab</text>
+<path d="M205.2,107.0 L226.2,107.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="418.4" y="80" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="500.0" y="104.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Planner</text>
+<text x="500.0" y="120.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">onboarding</text>
+<path d="M394.4,107.0 L415.4,107.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="607.5999999999999" y="80" width="163.2" height="54" rx="10" fill="#FFF6DA" stroke="#FFC220" stroke-width="1.6"/>
+<text x="689.1999999999999" y="104.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Budget source</text>
+<text x="689.1999999999999" y="120.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Manual or YNAB</text>
+<path d="M583.5999999999999,107.0 L604.5999999999999,107.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="796.8" y="80" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="878.4" y="104.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Household</text>
+<text x="878.4" y="120.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">inputs</text>
+<path d="M772.8,107.0 L793.8,107.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="40.0" y="178" width="210.5" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="145.25" y="202.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Basket</text>
+<text x="145.25" y="218.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">generation</text>
+<rect x="276.5" y="178" width="210.5" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="381.75" y="210.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Selection</text>
+<path d="M252.5,205.0 L273.5,205.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="513.0" y="178" width="210.5" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="618.25" y="210.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Cart</text>
+<path d="M489.0,205.0 L510.0,205.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="749.5" y="178" width="210.5" height="54" rx="10" fill="#0071DC" stroke="#0071DC" stroke-width="1.6"/>
+<text x="854.75" y="210.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">Checkout</text>
+<path d="M725.5,205.0 L746.5,205.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M878.4,134 L878.4,160 L145.25,160 L145.25,175" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<circle cx="52" cy="277" r="13" fill="#FFC220"/><text x="52" y="282" text-anchor="middle" font-size="13" font-weight="700" fill="#1A1F36">2</text>
+<text x="74" y="282" font-size="17" font-weight="700" fill="#1A1F36">Returning user</text>
+<text x="74" y="301" font-size="12.5" fill="#5B6475">Preferences are remembered, so planning a new week takes a few taps</text>
+<rect x="40.0" y="314" width="163.2" height="54" rx="10" fill="#0071DC" stroke="#0071DC" stroke-width="1.6"/>
+<text x="121.6" y="346.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">AI tab</text>
+<rect x="229.2" y="314" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="310.79999999999995" y="338.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Preferences</text>
+<text x="310.79999999999995" y="354.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">recalled</text>
+<path d="M205.2,341.0 L226.2,341.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="418.4" y="314" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="500.0" y="338.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Updated</text>
+<text x="500.0" y="354.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">budget</text>
+<path d="M394.4,341.0 L415.4,341.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="607.5999999999999" y="314" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="689.1999999999999" y="338.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Refreshed</text>
+<text x="689.1999999999999" y="354.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">basket</text>
+<path d="M583.5999999999999,341.0 L604.5999999999999,341.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="796.8" y="314" width="163.2" height="54" rx="10" fill="#0071DC" stroke="#0071DC" stroke-width="1.6"/>
+<text x="878.4" y="346.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">Cart</text>
+<path d="M772.8,341.0 L793.8,341.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<circle cx="52" cy="419" r="13" fill="#FFC220"/><text x="52" y="424" text-anchor="middle" font-size="13" font-weight="700" fill="#1A1F36">3</text>
+<text x="74" y="424" font-size="17" font-weight="700" fill="#1A1F36">Budget sync (YNAB)</text>
+<text x="74" y="443" font-size="12.5" fill="#5B6475">The basket respects the real budget, and the order syncs back after checkout</text>
+<rect x="40.0" y="456" width="135.0" height="54" rx="10" fill="#0071DC" stroke="#0071DC" stroke-width="1.6"/>
+<text x="107.5" y="488.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">Planner</text>
+<rect x="197.0" y="456" width="135.0" height="54" rx="10" fill="#FFF6DA" stroke="#FFC220" stroke-width="1.6"/>
+<text x="264.5" y="480.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">YNAB</text>
+<text x="264.5" y="496.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">sign-in (OAuth)</text>
+<path d="M177.0,483.0 L194.0,483.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="354.0" y="456" width="135.0" height="54" rx="10" fill="#FFF6DA" stroke="#FFC220" stroke-width="1.6"/>
+<text x="421.5" y="480.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Budget</text>
+<text x="421.5" y="496.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">pulled</text>
+<path d="M334.0,483.0 L351.0,483.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="511.0" y="456" width="135.0" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="578.5" y="480.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Basket kept</text>
+<text x="578.5" y="496.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">within budget</text>
+<path d="M491.0,483.0 L508.0,483.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="668.0" y="456" width="135.0" height="54" rx="10" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="735.5" y="488.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Checkout</text>
+<path d="M648.0,483.0 L665.0,483.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="825.0" y="456" width="135.0" height="54" rx="10" fill="#FFF6DA" stroke="#FFC220" stroke-width="1.6"/>
+<text x="892.5" y="480.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">Spend synced</text>
+<text x="892.5" y="496.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1A1F36">back to YNAB</text>
+<path d="M805.0,483.0 L822.0,483.0" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="197.0" y="556" width="195.0" height="46" rx="10" fill="#F3F4F6" stroke="#9AA3B2" stroke-width="1.6" stroke-dasharray="5 4"/>
+<text x="294.5" y="584.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#5B6475">Manual budget entry</text>
+<path d="M264.5,512 L264.5,553" stroke="#9AA3B2" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="5 4"/>
+<text x="270.5" y="536.5" font-size="12" fill="#5B6475">sign-in fails</text>
+<path d="M394.0,579 L578.5,579 L578.5,513" stroke="#9AA3B2" stroke-width="1.6" fill="none" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<rect x="40" y="634" width="22" height="14" rx="4" fill="#FFFFFF" stroke="#0071DC" stroke-width="1.6"/>
+<text x="70" y="646" font-size="12.5" fill="#5B6475">App step</text>
+<rect x="210" y="634" width="22" height="14" rx="4" fill="#FFF6DA" stroke="#FFC220" stroke-width="1.6"/>
+<text x="240" y="646" font-size="12.5" fill="#5B6475">YNAB budget step</text>
+<rect x="380" y="634" width="22" height="14" rx="4" fill="#F3F4F6" stroke="#9AA3B2" stroke-width="1.6" stroke-dasharray="5 4"/>
+<text x="410" y="646" font-size="12.5" fill="#5B6475">Fallback path</text>
+<text x="960" y="646" text-anchor="end" font-size="12" fill="#5B6475">Source: Smart Cart Companion PRD, section 9</text>
+</svg>
