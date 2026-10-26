@@ -1,81 +1,180 @@
-# Smart Cart Companion
+<h1 align="center">Smart Cart Companion</h1>
 
-An AI grocery planner that builds a weekly Walmart basket around your budget, checks it against your KOHO balance and YNAB budget before you buy, and shows where your grocery money went afterwards.
+An AI grocery planner for Walmart+ that helps households plan the week's groceries within a real budget. It turns this week's flyer deals into a personalized basket, checks it against your YNAB budget, and hands it off to the Walmart cart.
 
 Built as a product prototype during an AI Product Management course.
 
-**Live demo:** https://budget-cart-companion.vercel.app
+**Live demo:** https://budget-cart-companion.vercel.app · **Full PRD:** [smart-cart-companion-prd.pdf](about-the-product/smart-cart-companion-prd.pdf)
 
-## 1. Product vision
+<table>
+  <tr>
+    <td align="center"><img src="designs-and-screens/app-screens/1-home.jpg" width="170" alt="Home screen with the AI Grocery Planner entry point"><br><sub>Home</sub></td>
+    <td align="center"><img src="designs-and-screens/app-screens/2-ai-planner.jpg" width="170" alt="AI Grocery Planner onboarding with manual or YNAB budget"><br><sub>AI Planner</sub></td>
+    <td align="center"><img src="designs-and-screens/app-screens/3-ai-basket.jpg" width="170" alt="AI basket within a $100 budget, with strategy filters"><br><sub>AI basket</sub></td>
+    <td align="center"><img src="designs-and-screens/app-screens/4-checkout.jpg" width="170" alt="Checkout with order summary and KOHO balance check"><br><sub>Checkout</sub></td>
+    <td align="center"><img src="designs-and-screens/app-screens/5-wellness.jpg" width="170" alt="Savings and Wellness dashboard after an order"><br><sub>Savings &amp; Wellness</sub></td>
+  </tr>
+</table>
 
-Help every household plan groceries that fit their budget **before** they shop, not after.
+<sub>Screens from the live demo running on mock data.</sub>
 
-More in [`about-the-product/product-vision.md`](about-the-product/product-vision.md).
+## 🌟 1. Product vision
 
-## 2. The problem
+**Plan groceries smarter within budget.**
 
-- Shoppers set a grocery budget, but find out they've overspent only at checkout or when the bank statement arrives.
-- Budgeting apps such as YNAB track spending **after** it happens. Store apps help you find deals but don't know your budget.
-- Planning a week of healthy meals around a fixed budget, a household size and dietary needs is slow, manual work.
+The long-term goal is a household-first AI planning ecosystem that:
 
-## 3. Who it's for
+- automates flyer savings
+- aligns with real budgets
+- encourages healthier decisions
+- builds repeat weekly grocery habits
+- strengthens Walmart+ retention
 
-**Users:** budget-conscious households who shop at Walmart and want to stay on budget without giving up healthy food. They especially include people who already budget with YNAB or bank with KOHO.
+The bigger bet: move Walmart from a place where groceries are *bought* to the place where households *plan* them.
 
-**Customers (who would pay or partner):**
-- **Walmart:** loyal weekly shoppers and baskets built from its own deals.
-- **YNAB and KOHO:** their tools become part of the everyday shopping moment, not just the review afterwards.
+## 🧩 2. The problem
 
-## 4. The solution
+**For shoppers:** grocery planning is spread across separate tools: weekly flyers, a budgeting app, and the effort of hunting for savings. The result is overspending, missed flyer savings and decision fatigue.
+
+**For Walmart:** Walmart is excellent at fulfilling orders, but it lacks:
+
+- proactive flyer intelligence
+- budget-aware planning
+- household optimization
+- a link to the household's financial tools
+
+**The opportunity:** make Walmart+ the default place where households plan their groceries.
+
+## 👥 3. Who it's for
+
+**Users:**
+
+- budget-conscious households
+- students
+- meal preppers
+- Walmart+ subscribers
+
+**Customer (who benefits and pays):** Walmart, through better Walmart+ retention, more repeat grocery orders and larger recurring baskets. Secondary revenue could come from fintech referral partnerships and premium AI planning tools.
+
+## 💡 4. The solution
 
 Plan → Basket → Check → Buy → Review:
 
-1. **Plan:** the AI Grocery Planner asks for the planning period, budget, household size, dietary preferences, what's already in the kitchen, and final preferences.
-2. **Basket:** AI builds a basket from this week's deals. With no OpenAI key, a built-in engine offers 5 strategies: lowest cost, healthiest, bulk saver, family, brand.
-3. **Check:** checkout shows your KOHO balance and the impact on your YNAB grocery budget *before* you place the order.
-4. **Buy:** place the order; it syncs back to YNAB as a transaction.
-5. **Review:** the Savings & Wellness dashboard shows spending from your purchase history.
+1. **Plan:** a single-page onboarding asks for the planning period, the budget (typed in, or pulled from YNAB), household size, dietary preferences and pantry items.
+2. **Basket:** AI builds a basket from this week's flyer and rollback deals (OpenAI, or a built-in local engine). Shoppers can switch between strategies: lowest cost, healthiest, bulk saver, family, brand.
+3. **Check:** the basket is validated against the budget. Checkout shows the KOHO balance and the YNAB budget impact before the order is placed.
+4. **Buy:** the basket is handed off to the Walmart cart, and the spend syncs back to YNAB.
+5. **Review:** the Savings & Wellness dashboard shows budget used, savings and small wins.
 
-## 5. Success metrics
+### 🔀 User flows
 
-| Type | Metric |
+![User flows: new user, returning user and YNAB budget sync](designs-and-screens/user-flows/user-flows.svg)
+
+If YNAB or the flyer feed is unavailable, the app keeps working: a manual budget replaces YNAB, and a default optimized catalog replaces live flyer data.
+
+## 🎯 5. Goals and success metrics
+
+**North Star: Weekly Repeat Grocery Planning Usage.** The share of users who come back every week to plan with the AI Planner. Groceries are a weekly habit, so repeat planning is the clearest sign the product has become part of the routine.
+
+| Type | Metric | What it measures | Target |
+|---|---|---|---|
+| North Star | Weekly repeat planning usage | % of users returning weekly to the AI Planner | +25% in the first 6 months of the Walmart+ beta |
+| Business | Basket conversion rate | % of AI baskets added to cart and moved toward checkout | +10–15% |
+| Business | Walmart+ retention uplift | Increase in Walmart+ retention among planner users | +8–12% |
+| Business | Flyer savings utilization | How much of the available flyer savings shoppers use | +25% |
+| User trust | Budget compliance rate | % of baskets that stay within the stated budget | > 70% |
+| Operational | Basket generation speed | Time to generate a basket | < 3 seconds |
+
+**Operational targets:** API uptime > 99%, cart accuracy > 99%, flyer data refreshed within 24 hours.
+
+These are planning targets for the beta, not measured results. They are based on competitor analysis, observed grocery-planning behavior and gap analysis, and still need validation with real users during the beta. The reasoning behind each target is in the [PRD](about-the-product/smart-cart-companion-prd.pdf).
+
+## 🥊 6. Competitive landscape
+
+| Product | Strong at | Gap Smart Cart Companion fills |
+|---|---|---|
+| Walmart (native app) | Commerce and product range | No budget intelligence, flyer automation or household planning |
+| Flipp | Finding flyer deals | Doesn't build a personal basket or complete the purchase |
+| Instacart | Convenient delivery | Little budget-first planning, weak financial integration |
+| Amazon Fresh | Commerce and logistics | No flyer optimization or household budget alignment |
+| YNAB | Budgeting | Doesn't turn the budget into an actual grocery plan |
+
+**Differentiator:** the only option that combines grocery planning, flyer automation, budget sync, household personalization and repeat-purchase intelligence.
+
+## 📦 7. MVP scope
+
+**In the MVP:** AI Grocery Planner, personalized onboarding, household-size and dietary optimization, flyer/rollback ingestion (mock data, built to scale), YNAB budget sync, basket generation, budget validation, Walmart cart handoff.
+
+**Optional power features:** KOHO balance awareness, Smart Repeat, Tiny Wins, pantry intelligence, advanced wellness, full predictive grocery automation.
+
+| Integration | Status |
 |---|---|
-| North Star | % of baskets checked out at or under budget |
-| Supporting | Basket acceptance rate (AI basket checked out with few edits) |
-| Supporting | Weekly repeat planners |
-| Supporting | YNAB / KOHO connection rate |
-| Guardrail | Checkout completion rate, so staying on budget doesn't make shoppers abandon carts |
+| Supabase database | Real |
+| YNAB OAuth and sync-back | Real |
+| Basket generation (local engine or OpenAI) | Real |
+| Vercel deployment | Real |
+| Walmart live product and flyer APIs | Conceptual (mock catalog for now) |
+| KOHO / Plaid full integration | Conceptual (demo mode in the app) |
+| Live payments and order processing | Conceptual (simulated checkout) |
 
-## 6. MVP scope
+**Prioritization (RICE):**
 
-**In:** AI Grocery Planner, basket results with strategy filters, cart, checkout with KOHO and YNAB checks, Savings & Wellness dashboard, saved items, search. Every integration has a demo mode, so the app works without API keys.
+- **Highest:** AI Planner, Budget Sync, Flyer Automation
+- **Medium:** Smart Repeat, wellness optimization
+- **Lower:** behavioral insights, pantry intelligence
 
-**Not yet:** a real Walmart catalog (about 60 mock products for now), real payments, and a server-side proxy for the OpenAI key.
+## 🧪 8. Experiments
 
-## 7. What's next
+| Test | Compares | Measures |
+|---|---|---|
+| A | AI Planner vs. the standard Walmart grocery flow | Basket conversion, savings utilization, repeat usage |
+| B | YNAB-synced budgets vs. manual budgets | Budget compliance, retention, user trust |
 
-- Connect a real product and deals catalog in place of the mock data.
-- Move AI calls to a server so the API key isn't in the browser.
-- Test with real shoppers and measure the metrics above.
+## ⚠️ 9. Risks and how they're handled
 
-## 8. Where it stands
+| Assumption | If it fails | Mitigation |
+|---|---|---|
+| Users trust AI recommendations | Low basket adoption | Hybrid controls and manual overrides, more transparency |
+| Flyer data stays accurate | Wrong savings shown | Freshness monitoring, fallback to a default catalog |
+| Budget sync is reliable | OAuth / API failures | Manual budget fallback |
+| Walmart APIs are accessible | Limited real-time integration | Mock data with a scalable architecture, phased rollout |
+| AI recommendations are good | Poor personalization | Feedback loops and confidence scoring |
 
-A working prototype with demo data. YNAB, KOHO (via Plaid) and OpenAI connect when keys are added, and fall back to demo mode otherwise.
+## 🗺️ 10. Rollout and milestones
 
-## Repo map
+| Milestone | Goal | Status |
+|---|---|---|
+| MVP prototype | Core AI planner and Walmart workflow | Completed |
+| PRD and strategy | PRD for stakeholders | Current |
+| Beta integration | Walmart+ pilot deployment | Planned |
+| Smart Repeat launch | Behavioral retention layer | Phase 2 |
+| Household grocery operating system | Full ecosystem expansion | Phase 3 |
+
+**Rollout:** Phase 1 is a Walmart+ beta for budget-conscious households and families. Phase 2 expands regionally and adds Smart Repeat. Phase 3 grows into a full household grocery ecosystem.
+
+## 🧭 11. Product principles
+
+Budget clarity · Household simplicity · Savings automation · User trust · Configurable control · Walmart-native experience · Sustainable repeat behavior
+
+## 📍 12. Where it stands
+
+A working prototype with mock catalog data. YNAB and OpenAI connect when API keys are added; KOHO, Walmart APIs and payments run in demo mode. Every integration falls back to demo mode without keys, so the live demo works without any accounts.
+
+## 📁 Repo map
 
 | Folder | What's inside |
 |---|---|
-| [`about-the-product/`](about-the-product/) | Why this product exists: vision, the early MVP plan |
+| [`about-the-product/`](about-the-product/) | The PRD, product vision and the early MVP plan |
+| [`designs-and-screens/`](designs-and-screens/) | App screenshots and user flow diagrams |
 | [`frontend/`](frontend/) | An older copy of the app made with the Emergent builder. Kept until its unique features are reviewed |
 | [`setup-guide/`](setup-guide/) | How to run the app and connect OpenAI, Supabase, YNAB and Plaid |
 | [`the-app/`](the-app/) | The app itself: all code and its settings |
 
-## Built with
+## 🛠️ Built with
 
 React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router · OpenAI (GPT-4o-mini) · Supabase · YNAB API · Plaid · Vercel
 
-## Run it locally
+## 🚀 Run it locally
 
 ```bash
 cd the-app
@@ -85,6 +184,6 @@ npm run dev
 
 Then open http://localhost:8080. To turn on real integrations, see [`setup-guide/setup-and-integrations.md`](setup-guide/setup-and-integrations.md).
 
-## Author
+## 👤 Author
 
 Varun Sagar K
