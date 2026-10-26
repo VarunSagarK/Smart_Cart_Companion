@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart Cart Companion — Product Requirements Document</title>
+<style>
+  :root {
+    --paper: #FAF8F3; --card: #FFFFFF; --ink: #1E1A17; --body: #3B3430; --muted: #6B645E;
+    --rule: #E5DFD6; --maroon: #6E2C2A; --gold: #8A6A1E; --gold-bg: #F8F2E2; --gold-line: #B8963F;
+    --serif: Charter, "Iowan Old Style", Georgia, serif; --mono: Menlo, monospace;
+  }
+  @page {
+    size: Letter;
+    margin: 54pt 48pt 48pt 48pt;
+    background: #FAF8F3;
+    @top-left { content: "VARUN SAGAR K"; font: 6.5pt Menlo, monospace; letter-spacing: 0.12em; color: #6B645E; vertical-align: top; padding-top: 18pt; }
+    @top-right { content: "SMART CART COMPANION — PRD"; font: 6.5pt Menlo, monospace; letter-spacing: 0.12em; color: #6B645E; vertical-align: top; padding-top: 18pt; }
+    @bottom-center { content: "PAGE " counter(page) " OF " counter(pages); font: 6.5pt Menlo, monospace; letter-spacing: 0.12em; color: #6B645E; vertical-align: bottom; padding-bottom: 16pt; }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: var(--paper); }
+  body { font-family: var(--serif); font-size: 10.5pt; line-height: 1.6; color: var(--body); margin: 0; background: var(--paper); }
+  b, strong { color: var(--ink); font-weight: 600; }
+
+  /* Cover */
+  .cover { text-align: center; padding-top: 40pt; }
+  .eyebrow { font-family: var(--mono); font-size: 8pt; letter-spacing: 0.22em; text-transform: uppercase; color: var(--maroon); margin: 0 0 14pt; }
+  h1.title { font-family: var(--serif); font-weight: 600; font-size: 40pt; line-height: 1.05; color: var(--ink); margin: 0 0 16pt; letter-spacing: -0.01em; }
+  h1.title em { color: var(--maroon); font-style: italic; }
+  .tagline { font-size: 14pt; line-height: 1.55; color: var(--body); max-width: 400pt; margin: 0 auto 14pt; }
+  .meta { font-family: var(--mono); font-size: 7.5pt; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 26pt; }
+  .meta span + span::before { content: "·"; padding: 0 8pt; }
+  .stats { display: flex; border-top: 0.75pt solid var(--rule); border-bottom: 0.75pt solid var(--rule); margin: 0 0 26pt; }
+  .stats > div { flex: 1; padding: 14pt 6pt 12pt; text-align: center; }
+  .stats > div + div { border-left: 0.75pt solid var(--rule); }
+  .stats .n { font-family: var(--serif); font-weight: 700; font-size: 22pt; line-height: 1.1; color: var(--ink); }
+  .stats .l { font-family: var(--mono); font-size: 6.5pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 6pt; }
+  .tldr { text-align: left; background: var(--card); border: 0.75pt solid var(--rule); border-top: 3pt solid var(--gold-line); border-radius: 8pt; padding: 14pt 18pt; font-size: 11pt; line-height: 1.65; }
+  .tldr b:first-child { font-family: var(--mono); font-size: 7.5pt; letter-spacing: 0.18em; color: var(--maroon); font-weight: 500; display: block; margin-bottom: 4pt; }
+
+  /* Sections */
+  section { break-before: page; }
+  .label { font-family: var(--mono); font-size: 8pt; letter-spacing: 0.22em; text-transform: uppercase; color: var(--maroon); margin: 0 0 6pt; }
+  h2 { font-family: var(--serif); font-weight: 600; font-size: 24pt; line-height: 1.15; color: var(--ink); margin: 0 0 14pt; }
+  h3 { font-family: var(--serif); font-weight: 600; font-size: 13pt; color: var(--ink); margin: 16pt 0 6pt; break-after: avoid; page-break-after: avoid; }
+  p { margin: 0 0 8pt; }
+  ul, ol { margin: 0 0 8pt; padding-left: 18pt; }
+  li { margin: 0 0 3pt; }
+  li::marker { color: var(--maroon); }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 4pt 0 12pt; font-size: 9.5pt; line-height: 1.5; background: var(--card); border: 0.75pt solid var(--rule); border-radius: 8pt; overflow: hidden; break-inside: avoid; }
+  tr { break-inside: avoid; }
+  th, td { padding: 6pt 9pt; text-align: left; vertical-align: top; border-bottom: 0.75pt solid var(--rule); }
+  tr:last-child td { border-bottom: none; }
+  th + th, td + td { border-left: 0.75pt solid var(--rule); }
+  th { font-family: var(--mono); font-weight: 500; font-size: 6.8pt; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); background: #F4F0E8; }
+
+  .caption { font-style: italic; font-size: 9.5pt; color: var(--muted); margin: 4pt 0 12pt; }
+  .caption.center { text-align: center; }
+  .muted { font-style: italic; font-size: 9.5pt; color: var(--muted); }
+
+  .fm { background: var(--card); border: 0.75pt solid var(--rule); border-top: 3pt solid var(--maroon); border-radius: 8pt; padding: 10pt 14pt 8pt; margin: 0 0 9pt; break-inside: avoid; }
+  .fm .head { font-family: var(--serif); font-weight: 600; font-size: 12pt; color: var(--ink); margin-bottom: 4pt; }
+  .fm .num { font-family: var(--mono); font-weight: 500; font-size: 9pt; color: var(--maroon); display: inline-block; width: 18pt; }
+  .fm .tag { font-family: var(--mono); font-weight: 500; font-size: 6.8pt; letter-spacing: 0.08em; color: var(--gold); background: var(--gold-bg); border: 0.75pt solid var(--gold-line); border-radius: 20pt; padding: 1pt 7pt; margin-left: 6pt; vertical-align: 2pt; }
+  .fm p { margin: 0 0 3pt; font-size: 10pt; }
+
+  figure { margin: 6pt 0 4pt; break-inside: avoid; }
+  figure img { width: 100%; display: block; }
+  figure.panel { background: var(--card); border: 0.75pt solid var(--rule); border-radius: 8pt; padding: 10pt; }
+  .screens { display: flex; gap: 9pt; margin: 6pt 0 4pt; break-inside: avoid; }
+  .screens div { flex: 1; text-align: center; font-family: var(--mono); font-size: 6.8pt; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .screens img { width: 100%; border: 0.75pt solid var(--rule); border-radius: 6pt; display: block; margin-bottom: 5pt; }
+
+  .req td:first-child { width: 16%; }
+  .req td:first-child { font-family: var(--mono); font-size: 7pt; letter-spacing: 0.12em; color: var(--gold); }
+  code { font-family: var(--mono); font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <p class="eyebrow">Product Requirements Document</p>
+  <h1 class="title">Smart Cart <em>Companion</em></h1>
+  <p class="tagline">An AI grocery planner that helps Walmart+ households plan the week's groceries within a real budget.</p>
+  <p class="meta"><span>Varun Sagar K</span><span>AI Grocery Planning for Walmart+</span><span>budget-cart-companion.vercel.app</span></p>
+  <div class="stats">
+    <div><div class="n">+25%</div><div class="l">North Star target</div></div>
+    <div><div class="n">+10–15%</div><div class="l">Basket conversion</div></div>
+    <div><div class="n">+8–12%</div><div class="l">Walmart+ retention</div></div>
+    <div><div class="n">&lt;3s</div><div class="l">Basket generation</div></div>
+  </div>
+  <div class="tldr">
+  <b>TL;DR</b> Grocery shoppers plan across separate tools: weekly flyers, a budgeting app, and their own hunt for savings. The result is overspending, missed flyer savings and decision fatigue. Walmart is excellent at fulfilling orders, but it doesn't help households <i>plan</i>. <b>Smart Cart Companion</b> is an AI grocery planner inside the Walmart experience. It turns this week's flyer and rollback deals into a personalized basket, keeps that basket within the household's real budget (typed in, or pulled from YNAB), and hands it off to the Walmart cart. Groceries are bought every week, so the product is measured on habit: the North Star is <b>Weekly Repeat Grocery Planning Usage</b>, with a target of +25% in the first six months of a Walmart+ beta. The business payoff is Walmart+ retention. The aim is to move Walmart from a place where groceries are bought to the place where households plan them.
+</div>
+</div>
+
+<!-- Section 1 -->
+<section>
+  <p class="label">Section 1</p>
+  <h2>Problem &amp; User</h2>
+  <p><b>Product.</b> Smart Cart Companion: a Walmart+ capability that plans a household's groceries within its real budget, before it shops.</p>
+
+  <h3>Who it's for</h3>
+  <ul>
+    <li><b>Budget-conscious households</b> that need the weekly shop to fit a fixed amount</li>
+    <li><b>Students</b> on tight, predictable budgets</li>
+    <li><b>Meal preppers</b> who plan a week of food at once</li>
+    <li><b>Walmart+ subscribers</b>, the group whose retention the product is designed to lift</li>
+  </ul>
+  <p class="muted">These segments come from competitor analysis, observed grocery-planning behavior, product gap analysis and market opportunity assessment. They still need validation with real users during the beta.</p>
+
+  <h3>Today's workflow</h3>
+  <table>
+    <tr><th style="width:8%">Step</th><th>What shoppers do today</th><th style="width:28%">Result</th></tr>
+    <tr><td>1</td><td>Browse the weekly flyers to find this week's deals</td><td><b>Missed flyer savings</b></td></tr>
+    <tr><td>2</td><td>Check the grocery budget in a separate budgeting app</td><td><b>Overspending</b></td></tr>
+    <tr><td>3</td><td>Work out by hand which items give the best value across both</td><td><b>Decision fatigue</b></td></tr>
+  </table>
+
+  <h3>Walmart's product gap</h3>
+  <p>Walmart excels at transaction fulfillment but lacks four things a planning household needs: <b>proactive flyer intelligence</b>, <b>budget-aware planning</b>, <b>household optimization</b> and <b>a link to the household's financial tools</b>.</p>
+
+  <h3>Why existing options fall short</h3>
+  <table>
+    <tr><th style="width:20%">Option</th><th style="width:30%">Strong at</th><th>Why it falls short here</th></tr>
+    <tr><td><b>Walmart (native)</b></td><td>Commerce infrastructure, broad product range</td><td>No proactive budget intelligence, flyer automation or household grocery planning</td></tr>
+    <tr><td><b>Flipp</b></td><td>Flyer aggregation and finding savings</td><td>Doesn't build a personalized basket or complete the purchase</td></tr>
+    <tr><td><b>Instacart</b></td><td>Convenient delivery and shopping help</td><td>Little budget-first planning, weak financial integration</td></tr>
+    <tr><td><b>Amazon Fresh</b></td><td>Commerce and logistics</td><td>No flyer optimization or household budget alignment</td></tr>
+    <tr><td><b>YNAB</b></td><td>Budgeting</td><td>Doesn't turn the budget into an actual grocery plan</td></tr>
+    <tr><td><b>Smart Cart Companion</b></td><td colspan="2">Combines grocery planning, flyer automation, budget sync, household personalization and repeat-purchase intelligence in one flow</td></tr>
+  </table>
+
+  <h3>The opportunity</h3>
+  <p>Make Walmart+ the default place where households plan their groceries. Solving the weekly budget, savings and repeat-shopping problems up front lets Walmart expand from commerce into household grocery and financial planning.</p>
+</section>
+
+<!-- Section 2 -->
+<section>
+  <p class="label">Section 2</p>
+  <h2>Goals, Scope &amp; User Flows</h2>
+  <p><b>Vision.</b> Plan groceries smarter within budget.</p>
+  <p><b>Long-term goal.</b> A household-first AI planning ecosystem that automates flyer savings, aligns with real budgets, encourages healthier decisions, builds repeat weekly grocery habits and strengthens Walmart+ retention.</p>
+
+  <h3>Goals</h3>
+  <table>
+    <tr><th style="width:18%">For</th><th>Goal</th></tr>
+    <tr><td><b>Walmart</b></td><td>Lift Walmart+ retention by 8–12% among AI Planner users in the first six months · Lift AI basket-to-cart conversion by 10–15% · Lift flyer savings utilization by 25%</td></tr>
+    <tr><td><b>Shoppers</b></td><td>Stay within the grocery budget · Save planning time · Reduce overspending · See savings clearly · Make repeat grocery shopping simple</td></tr>
+  </table>
+
+  <h3>Scope</h3>
+  <table>
+    <tr><th style="width:34%">In the MVP</th><th style="width:33%">Optional power features</th><th>Conceptual (not built)</th></tr>
+    <tr>
+      <td>AI Grocery Planner<br>Personalized onboarding<br>Household-size intelligence<br>Dietary optimization<br>Flyer/rollback ingestion (mock data, scalable design)<br>YNAB budget sync<br>Basket generation<br>Budget validation<br>Walmart-native cart handoff</td>
+      <td>KOHO balance awareness<br>Smart Repeat<br>Tiny Wins<br>Pantry intelligence<br>Advanced wellness<br>Full predictive grocery automation</td>
+      <td>Walmart live product APIs<br>Walmart flyer APIs<br>Full KOHO / Plaid integration<br>Live payments and order processing</td>
+    </tr>
+  </table>
+
+  <h3>Prioritization (RICE)</h3>
+  <table>
+    <tr><th style="width:18%">Tier</th><th>Features</th></tr>
+    <tr><td><b>Highest</b></td><td>AI Planner · Budget Sync · Flyer Automation</td></tr>
+    <tr><td><b>Medium</b></td><td>Smart Repeat · Wellness optimization</td></tr>
+    <tr><td><b>Lower</b></td><td>Behavioral insights · Pantry intelligence</td></tr>
+  </table>
+
+  <h3>User flows</h3>
+  <figure class="panel"><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 666" width="1000" height="666" font-family="Charter, Georgia, serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8C7B70"/></marker></defs>
+<rect width="1000" height="666" rx="16" fill="#FFFFFF"/>
+<circle cx="52" cy="43" r="13" fill="#6E2C2A" stroke="#000" stroke-width="0"/><text x="52" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">1</text>
+<text x="74" y="48" font-size="17" font-weight="700" fill="#1E1A17">New user</text>
+<text x="74" y="67" font-size="12.5" fill="#6B645E">First visit: set up the planner once, then get a basket</text>
+<rect x="40.0" y="80" width="163.2" height="54" rx="10" fill="#6E2C2A" stroke="#6E2C2A" stroke-width="1.6"/>
+<text x="121.6" y="112.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">Home</text>
+<rect x="229.2" y="80" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="310.79999999999995" y="112.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">AI tab</text>
+<path d="M205.2,107.0 L226.2,107.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="418.4" y="80" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="500.0" y="104.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Planner</text>
+<text x="500.0" y="120.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">onboarding</text>
+<path d="M394.4,107.0 L415.4,107.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="607.5999999999999" y="80" width="163.2" height="54" rx="10" fill="#F8F2E2" stroke="#B8963F" stroke-width="1.6"/>
+<text x="689.1999999999999" y="104.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Budget source</text>
+<text x="689.1999999999999" y="120.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Manual or YNAB</text>
+<path d="M583.5999999999999,107.0 L604.5999999999999,107.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="796.8" y="80" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="878.4" y="104.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Household</text>
+<text x="878.4" y="120.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">inputs</text>
+<path d="M772.8,107.0 L793.8,107.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="40.0" y="178" width="210.5" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="145.25" y="202.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Basket</text>
+<text x="145.25" y="218.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">generation</text>
+<rect x="276.5" y="178" width="210.5" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="381.75" y="210.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Selection</text>
+<path d="M252.5,205.0 L273.5,205.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="513.0" y="178" width="210.5" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="618.25" y="210.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Cart</text>
+<path d="M489.0,205.0 L510.0,205.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="749.5" y="178" width="210.5" height="54" rx="10" fill="#6E2C2A" stroke="#6E2C2A" stroke-width="1.6"/>
+<text x="854.75" y="210.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">Checkout</text>
+<path d="M725.5,205.0 L746.5,205.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M878.4,134 L878.4,160 L145.25,160 L145.25,175" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<circle cx="52" cy="277" r="13" fill="#6E2C2A" stroke="#000" stroke-width="0"/><text x="52" y="282" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">2</text>
+<text x="74" y="282" font-size="17" font-weight="700" fill="#1E1A17">Returning user</text>
+<text x="74" y="301" font-size="12.5" fill="#6B645E">Preferences are remembered, so planning a new week takes a few taps</text>
+<rect x="40.0" y="314" width="163.2" height="54" rx="10" fill="#6E2C2A" stroke="#6E2C2A" stroke-width="1.6"/>
+<text x="121.6" y="346.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">AI tab</text>
+<rect x="229.2" y="314" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="310.79999999999995" y="338.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Preferences</text>
+<text x="310.79999999999995" y="354.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">recalled</text>
+<path d="M205.2,341.0 L226.2,341.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="418.4" y="314" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="500.0" y="338.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Updated</text>
+<text x="500.0" y="354.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">budget</text>
+<path d="M394.4,341.0 L415.4,341.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="607.5999999999999" y="314" width="163.2" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="689.1999999999999" y="338.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Refreshed</text>
+<text x="689.1999999999999" y="354.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">basket</text>
+<path d="M583.5999999999999,341.0 L604.5999999999999,341.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="796.8" y="314" width="163.2" height="54" rx="10" fill="#6E2C2A" stroke="#6E2C2A" stroke-width="1.6"/>
+<text x="878.4" y="346.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">Cart</text>
+<path d="M772.8,341.0 L793.8,341.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<circle cx="52" cy="419" r="13" fill="#6E2C2A" stroke="#000" stroke-width="0"/><text x="52" y="424" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">3</text>
+<text x="74" y="424" font-size="17" font-weight="700" fill="#1E1A17">Budget sync (YNAB)</text>
+<text x="74" y="443" font-size="12.5" fill="#6B645E">The basket respects the real budget, and the order syncs back after checkout</text>
+<rect x="40.0" y="456" width="135.0" height="54" rx="10" fill="#6E2C2A" stroke="#6E2C2A" stroke-width="1.6"/>
+<text x="107.5" y="488.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#FFFFFF">Planner</text>
+<rect x="197.0" y="456" width="135.0" height="54" rx="10" fill="#F8F2E2" stroke="#B8963F" stroke-width="1.6"/>
+<text x="264.5" y="480.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">YNAB</text>
+<text x="264.5" y="496.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">sign-in (OAuth)</text>
+<path d="M177.0,483.0 L194.0,483.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="354.0" y="456" width="135.0" height="54" rx="10" fill="#F8F2E2" stroke="#B8963F" stroke-width="1.6"/>
+<text x="421.5" y="480.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Budget</text>
+<text x="421.5" y="496.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">pulled</text>
+<path d="M334.0,483.0 L351.0,483.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="511.0" y="456" width="135.0" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="578.5" y="480.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Basket kept</text>
+<text x="578.5" y="496.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">within budget</text>
+<path d="M491.0,483.0 L508.0,483.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="668.0" y="456" width="135.0" height="54" rx="10" fill="#FFFFFF" stroke="#D9D1C5" stroke-width="1.6"/>
+<text x="735.5" y="488.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Checkout</text>
+<path d="M648.0,483.0 L665.0,483.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="825.0" y="456" width="135.0" height="54" rx="10" fill="#F8F2E2" stroke="#B8963F" stroke-width="1.6"/>
+<text x="892.5" y="480.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">Spend synced</text>
+<text x="892.5" y="496.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1E1A17">back to YNAB</text>
+<path d="M805.0,483.0 L822.0,483.0" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<rect x="197.0" y="556" width="195.0" height="46" rx="10" fill="#F3F4F6" stroke="#8C7B70" stroke-width="1.6" stroke-dasharray="5 4"/>
+<text x="294.5" y="584.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#6B645E">Manual budget entry</text>
+<path d="M264.5,512 L264.5,553" stroke="#8C7B70" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="5 4"/>
+<text x="270.5" y="536.5" font-size="12" fill="#6B645E">sign-in fails</text>
+<path d="M394.0,579 L578.5,579 L578.5,513" stroke="#8C7B70" stroke-width="1.6" fill="none" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<rect x="40" y="634" width="22" height="14" rx="4" fill="#6E2C2A" stroke="#6E2C2A" stroke-width="1.6"/>
+<text x="70" y="646" font-size="12.5" fill="#6B645E">Start / end</text>
+<rect x="210" y="634" width="22" height="14" rx="4" fill="#F8F2E2" stroke="#B8963F" stroke-width="1.6"/>
+<text x="240" y="646" font-size="12.5" fill="#6B645E">YNAB budget step</text>
+<rect x="380" y="634" width="22" height="14" rx="4" fill="#FFFFFF" stroke="#8C7B70" stroke-width="1.6" stroke-dasharray="5 4"/>
+<text x="410" y="646" font-size="12.5" fill="#6B645E">Fallback path</text>
+<text x="960" y="646" text-anchor="end" font-size="12" fill="#6B645E">Source: Smart Cart Companion PRD, section 9</text>
+</svg></figure>
+  <p class="caption center">What to notice: the budget comes in before the basket is built, so the basket never starts over budget. Returning users skip onboarding because their preferences are recalled.</p>
+  <p><b>Failure states.</b> If the budget API is unavailable, the shopper enters a budget manually. If flyer ingestion is unavailable, the planner uses a default optimized catalog.</p>
+</section>
+
+<!-- Section 3 -->
+<section>
+  <p class="label">Section 3</p>
+  <h2>Architecture</h2>
+  <p class="caption">How the MVP works end to end. The shopper's inputs and budget enter on the left, a budget-checked basket comes out on the right, and the spend flows back into YNAB after checkout.</p>
+
+  <figure class="panel">
+  <svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" font-family="Charter, Georgia, serif">
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6E2C2A"/></marker></defs>
+    <g font-size="8.5" text-anchor="middle" fill="#3B3430">
+      <!-- row 1 -->
+      <rect x="10" y="20" width="150" height="62" rx="5" fill="#FFFFFF" stroke="#D9D1C5"/>
+      <text x="85" y="44" font-weight="600" font-size="10.5" fill="#1E1A17">Planner inputs</text><text x="85" y="60">period · budget · household</text><text x="85" y="74">diet · pantry</text>
+      <rect x="200" y="20" width="150" height="62" rx="5" fill="#FFFFFF" stroke="#D9D1C5"/>
+      <text x="275" y="44" font-weight="600" font-size="10.5" fill="#1E1A17">Budget source</text><text x="275" y="60">manual entry, or</text><text x="275" y="74">YNAB (OAuth)</text>
+      <rect x="390" y="20" width="150" height="62" rx="5" fill="#F8F2E2" stroke="#B8963F"/>
+      <text x="465" y="44" font-weight="600" font-size="10.5" fill="#1E1A17">Basket engine</text><text x="465" y="60">GPT-4o-mini, or</text><text x="465" y="74">local engine (5 strategies)</text>
+      <rect x="580" y="20" width="130" height="62" rx="5" fill="#FFFFFF" stroke="#D9D1C5"/>
+      <text x="645" y="44" font-weight="600" font-size="10.5" fill="#1E1A17">Catalog</text><text x="645" y="60">flyer + rollback deals</text><text x="645" y="74">(mock data)</text>
+      <!-- row 2 -->
+      <rect x="390" y="140" width="150" height="62" rx="5" fill="#FFFFFF" stroke="#D9D1C5"/>
+      <text x="465" y="164" font-weight="600" font-size="10.5" fill="#1E1A17">Budget validation</text><text x="465" y="180">IDs checked against catalog</text><text x="465" y="194">total vs. budget</text>
+      <rect x="200" y="140" width="150" height="62" rx="5" fill="#FFFFFF" stroke="#D9D1C5"/>
+      <text x="275" y="164" font-weight="600" font-size="10.5" fill="#1E1A17">Cart &amp; checkout</text><text x="275" y="180">KOHO balance check</text><text x="275" y="194">YNAB budget impact</text>
+      <rect x="10" y="140" width="150" height="62" rx="5" fill="#F8F2E2" stroke="#B8963F"/>
+      <text x="85" y="164" font-weight="600" font-size="10.5" fill="#1E1A17">Sync back</text><text x="85" y="180">spend posted to YNAB</text><text x="85" y="194">wellness dashboard</text>
+      <!-- storage bar -->
+      <rect x="10" y="240" width="700" height="38" rx="5" fill="#FFFFFF" stroke="#D9D1C5"/>
+      <text x="360" y="263">State: saved in the browser first, synced to Supabase when signed in · Hosted on Vercel</text>
+    </g>
+    <g stroke="#6E2C2A" stroke-width="1.2" fill="none" marker-end="url(#ar)">
+      <path d="M160,51 L196,51"/><path d="M350,51 L386,51"/><path d="M580,51 L544,51"/>
+      <path d="M465,82 L465,136"/><path d="M390,171 L354,171"/><path d="M200,171 L164,171"/>
+    </g>
+  </svg>
+  </figure>
+  <p class="caption center">What to notice: the AI can only pick items that exist in the catalog, and every pick is validated before it reaches the cart. If the AI call fails or no key is set, the local engine builds the basket instead.</p>
+
+  <h3>Data sources</h3>
+  <p>A <b>mock Walmart catalog</b> of grocery products with prices, rollback deals and ratings stands in for live data. Flyer ingestion is designed so the mock catalog can be swapped for <b>Walmart's product and flyer APIs</b> later without changing the screens.</p>
+
+  <h3>Basket generation</h3>
+  <p><b>OpenAI GPT-4o-mini</b> receives the shopper's preferences and a compact copy of the catalog, and returns a basket as structured JSON. Its rules: pick only from the catalog using exact item IDs, stay within the total budget, respect dietary restrictions strictly, prefer items on sale, and cover the major food categories. Every returned ID is checked against the catalog. When no OpenAI key is set, or the call fails, the built-in <b>local engine</b> ranks the catalog against the shopper's preferences with five strategies: lowest cost, healthiest, bulk saver, family and brand.</p>
+
+  <h3>Integrations</h3>
+  <table>
+    <tr><th style="width:45%">Integration</th><th style="width:17%">Status</th><th>Notes</th></tr>
+    <tr><td>Supabase database</td><td><b>Real</b></td><td>Accounts and synced app state</td></tr>
+    <tr><td>YNAB OAuth and sync-back</td><td><b>Real</b></td><td>Pulls the grocery budget, posts the order back</td></tr>
+    <tr><td>Basket generation (local engine or OpenAI)</td><td><b>Real</b></td><td>Works without any key, using the local engine</td></tr>
+    <tr><td>Vercel deployment</td><td><b>Real</b></td><td>Hosts the live MVP</td></tr>
+    <tr><td>Walmart live product and flyer APIs</td><td>Conceptual</td><td>Mock catalog for now</td></tr>
+    <tr><td>KOHO / Plaid full integration</td><td>Conceptual</td><td>Demo mode in the MVP</td></tr>
+    <tr><td>Live payments and order processing</td><td>Conceptual</td><td>Simulated checkout</td></tr>
+  </table>
+</section>
+
+<!-- Section 4 -->
+<section>
+  <p class="label">Section 4</p>
+  <h2>Failure Modes &amp; How They're Handled</h2>
+  <p>Each entry starts from an assumption the product depends on and covers what breaks if it fails, how we'd notice and how we'd respond.</p>
+
+  <div class="fm">
+    <div class="head"><span class="num">1</span>Users don't trust AI recommendations<span class="tag">Impact: High</span><span class="tag">Likelihood: Medium</span></div>
+    <p><b>Breaks:</b> shoppers ignore the AI basket, so basket adoption stays low.</p>
+    <p><b>Detect:</b> basket conversion declines.</p>
+    <p><b>Fix:</b> hybrid controls with manual overrides, so shoppers can toggle, swap and switch strategies. Contain it by adding transparency and control.</p>
+  </div>
+
+  <div class="fm">
+    <div class="head"><span class="num">2</span>Flyer data goes stale or wrong<span class="tag">Impact: High</span><span class="tag">Likelihood: Medium</span></div>
+    <p><b>Breaks:</b> the planner recommends savings that don't exist at the shelf.</p>
+    <p><b>Detect:</b> a rising price-mismatch rate.</p>
+    <p><b>Fix:</b> SLA monitoring on flyer freshness (target: refreshed within 24 hours), with fallback to a default optimized catalog.</p>
+  </div>
+
+  <div class="fm">
+    <div class="head"><span class="num">3</span>Budget sync is unreliable<span class="tag">Impact: Medium</span><span class="tag">Likelihood: Medium</span></div>
+    <p><b>Breaks:</b> OAuth or YNAB API failures leave the planner without a budget.</p>
+    <p><b>Detect:</b> the OAuth failure rate.</p>
+    <p><b>Fix:</b> a manual budget fallback, so planning continues in manual mode without blocking the shopper.</p>
+  </div>
+
+  <div class="fm">
+    <div class="head"><span class="num">4</span>Walmart APIs aren't accessible<span class="tag">Impact: High</span><span class="tag">Likelihood: High</span></div>
+    <p><b>Breaks:</b> limited real-time integration with Walmart's product, flyer and cart systems.</p>
+    <p><b>Detect:</b> integration blockers during the beta.</p>
+    <p><b>Fix:</b> mock data behind a scalable architecture, plus a phased rollout that works within those limits.</p>
+  </div>
+
+  <div class="fm">
+    <div class="head"><span class="num">5</span>AI recommendations are poor<span class="tag">Impact: High</span><span class="tag">Likelihood: Medium</span></div>
+    <p><b>Breaks:</b> weak personalization; baskets don't match the household.</p>
+    <p><b>Detect:</b> user trust declines.</p>
+    <p><b>Fix:</b> feedback loops and confidence scoring, with recommendation retraining.</p>
+  </div>
+
+  <div class="fm">
+    <div class="head"><span class="num">6</span>The AI service is unavailable</div>
+    <p><b>Breaks:</b> the OpenAI call fails or no key is configured.</p>
+    <p><b>Detect:</b> each basket is flagged as built by the AI or by the local engine.</p>
+    <p><b>Fix:</b> automatic fallback to the local engine, so a basket is always generated.</p>
+  </div>
+</section>
+
+<!-- Section 5 -->
+<section>
+  <p class="label">Section 5</p>
+  <h2>Metrics, Experiments &amp; Trust</h2>
+
+  <h3>North Star</h3>
+  <p><b>Weekly Repeat Grocery Planning Usage</b>: the percentage of users who return every week to use the AI grocery planner. <b>Target: +25%</b> in repeat planner engagement within the first six months of the Walmart+ beta cohort. It measures habit, stickiness and Walmart+ retention potential. Groceries are bought every week, so a planner that works should become a weekly routine.</p>
+
+  <h3>Success metrics</h3>
+  <table>
+    <tr><th style="width:19%">Metric</th><th style="width:11%">Type</th><th style="width:27%">Definition</th><th style="width:12%">Target</th><th>Why this target</th></tr>
+    <tr><td><b>Weekly repeat planning usage</b></td><td>North Star</td><td>% of users returning weekly to the AI planner</td><td>+25%</td><td>Ambitious but achievable for a tool that solves a weekly, recurring pain</td></tr>
+    <tr><td><b>Basket conversion rate</b></td><td>Business</td><td>% of AI baskets added to cart and moved toward checkout</td><td>+10–15%</td><td>Recommendation systems usually lift conversion step by step; a conservative, enterprise-realistic range</td></tr>
+    <tr><td><b>Walmart+ retention uplift</b></td><td>Business</td><td>Increase in Walmart+ retention among planner users</td><td>+8–12%</td><td>Retention moves gradually; this avoids overestimating the early impact</td></tr>
+    <tr><td><b>Budget compliance rate</b></td><td>User trust</td><td>% of baskets that stay within the stated budget</td><td>&gt; 70%</td><td>A clear majority shows the core promise holds, while allowing for edits and price changes</td></tr>
+    <tr><td><b>Basket generation speed</b></td><td>Operational</td><td>Time to generate a basket</td><td>&lt; 3 sec</td><td>Consumer AI tools need near-instant results; longer delays risk abandonment</td></tr>
+  </table>
+
+  <h3>Operational targets</h3>
+  <table>
+    <tr><th>Basket generation latency</th><th>API uptime</th><th>Cart accuracy</th><th>Flyer freshness SLA</th></tr>
+    <tr><td>&lt; 3 seconds</td><td>&gt; 99%</td><td>&gt; 99%</td><td>&lt; 24 hours</td></tr>
+  </table>
+
+  <h3>Experiments (Phase 1)</h3>
+  <table>
+    <tr><th style="width:8%">Test</th><th style="width:44%">Compares</th><th>Measures</th></tr>
+    <tr><td><b>A</b></td><td>AI Planner vs. the standard Walmart grocery flow</td><td>Basket conversion · savings utilization · repeat usage</td></tr>
+    <tr><td><b>B</b></td><td>YNAB-synced budgets vs. manual budgets</td><td>Budget compliance · retention · user trust</td></tr>
+  </table>
+
+  <h3>Trust and privacy</h3>
+  <ul>
+    <li><b>Transparent savings breakdown:</b> rollback savings are shown per item and in the order total.</li>
+    <li><b>Budget warnings:</b> the basket shows when the selection goes over budget, and by how much.</li>
+    <li><b>Privacy-first integrations:</b> YNAB and Plaid token exchanges run on the backend, so access tokens never reach the browser. In the MVP the OpenAI key is called from the browser to keep things simple; it moves to a server-side proxy before production.</li>
+  </ul>
+</section>
+
+<!-- Section 6 -->
+<section>
+  <p class="label">Section 6</p>
+  <h2>UX &amp; Rollout</h2>
+
+  <h3>UX requirements</h3>
+  <ul>
+    <li><b>Walmart-native visual patterns</b>, so the planner feels like part of the Walmart app</li>
+    <li><b>Single-page onboarding</b> that covers period, budget, household, diet and pantry in one place</li>
+    <li><b>Persistent cart continuity</b> across screens and visits</li>
+  </ul>
+
+  <div class="screens">
+    <div><img src="../../designs-and-screens/app-screens/1-home.jpg" alt="">Home</div>
+    <div><img src="../../designs-and-screens/app-screens/2-ai-planner.jpg" alt="">AI Planner</div>
+    <div><img src="../../designs-and-screens/app-screens/3-ai-basket.jpg" alt="">AI basket</div>
+    <div><img src="../../designs-and-screens/app-screens/4-checkout.jpg" alt="">Checkout</div>
+    <div><img src="../../designs-and-screens/app-screens/5-wellness.jpg" alt="">Savings &amp; Wellness</div>
+  </div>
+  <p class="caption center">Screens from the live MVP running on mock data.</p>
+
+  <h3>Rollout</h3>
+  <table>
+    <tr><th style="width:12%">Phase</th><th>Scope</th></tr>
+    <tr><td><b>1</b></td><td>Walmart+ beta for budget-conscious households and families</td></tr>
+    <tr><td><b>2</b></td><td>Regional Walmart+ expansion, plus Smart Repeat</td></tr>
+    <tr><td><b>3</b></td><td>A full household grocery operating ecosystem</td></tr>
+  </table>
+
+  <h3>Milestones</h3>
+  <table>
+    <tr><th style="width:34%">Milestone</th><th>Goal</th><th style="width:16%">Status</th></tr>
+    <tr><td>MVP prototype development</td><td>Core AI planner and Walmart workflow integration</td><td><b>Completed</b></td></tr>
+    <tr><td>PRD and strategic artifact buildout</td><td>PRD for stakeholders</td><td><b>Current</b></td></tr>
+    <tr><td>Beta integration phase</td><td>Walmart+ pilot deployment</td><td>Planned</td></tr>
+    <tr><td>Smart Repeat launch</td><td>Behavioral retention layer</td><td>Phase 2</td></tr>
+    <tr><td>Household grocery operating system</td><td>Full ecosystem expansion</td><td>Phase 3</td></tr>
+  </table>
+
+  <h3>Monetization</h3>
+  <p><b>Primary:</b> Walmart+ subscription retention, more repeat grocery transactions and larger recurring baskets. <b>Secondary:</b> fintech referral partnerships and premium AI planning tools. <b>Expected outcome:</b> higher customer lifetime value through retention and household reliance on the planner.</p>
+
+  <h3>Product principles</h3>
+  <p>Always prioritize: budget clarity · household simplicity · savings automation · user trust · configurable control · a Walmart-native experience · sustainable repeat behavior.</p>
+</section>
+
+<!-- Section 7 -->
+<section>
+  <p class="label">Section 7</p>
+  <h2>AI Build Brief</h2>
+  <p>The specification the basket planner is built against, taken from the MVP's planner.</p>
+
+  <h3>Inputs</h3>
+  <p>Planning period (weekly, bi-weekly or monthly) · budget (manual or from YNAB) · household (adults, seniors, kids) · dietary preferences · pantry items · the product catalog with prices, deals and ratings.</p>
+
+  <h3>Rules the model must follow</h3>
+  <ol>
+    <li>Select only items that exist in the provided catalog, using exact item IDs.</li>
+    <li>Stay within the total budget for the planning period.</li>
+    <li>Respect dietary restrictions strictly.</li>
+    <li>Prefer items on sale when possible.</li>
+    <li>Cover the major food categories (produce, dairy, protein, pantry and others).</li>
+    <li>Return only valid JSON with a strategy, a short personalized explanation and the selected item IDs.</li>
+  </ol>
+
+  <h3>Requirements</h3>
+  <p class="muted">Mapped from the RICE prioritization tiers in Section 2.</p>
+  <table class="req">
+    <tr><th>Priority</th><th>Requirement</th></tr>
+    <tr><td>MUST</td><td><b>AI Planner:</b> generate a personalized grocery basket from the shopper's inputs</td></tr>
+    <tr><td>MUST</td><td><b>Budget Sync:</b> plan within the real budget, from YNAB or entered manually, and sync spend back</td></tr>
+    <tr><td>MUST</td><td><b>Flyer Automation:</b> build baskets from this week's flyer and rollback deals</td></tr>
+    <tr><td>SHOULD</td><td><b>Smart Repeat:</b> make next week's plan faster for returning households</td></tr>
+    <tr><td>SHOULD</td><td><b>Wellness optimization:</b> encourage healthier choices within budget</td></tr>
+    <tr><td>COULD</td><td><b>Behavioral insights</b> on spending and planning habits</td></tr>
+    <tr><td>COULD</td><td><b>Pantry intelligence:</b> account for what the household already has</td></tr>
+  </table>
+
+  <h3>Guardrails</h3>
+  <ul>
+    <li>Item IDs returned by the model are checked against the catalog; unknown IDs are dropped.</li>
+    <li>If the model call fails or no key is set, the local engine builds the basket, so the shopper always gets one.</li>
+    <li>The shopper always has the final say: items can be toggled, and strategies switched, before anything reaches the cart.</li>
+  </ul>
+</section>
+
+<!-- Section 8 -->
+<section>
+  <p class="label">Section 8</p>
+  <h2>Open Questions &amp; Terms</h2>
+
+  <h3>Open questions</h3>
+  <ol>
+    <li>Will Walmart provide access to live product, flyer and cart APIs, and on what timeline? (Rated high impact and high likelihood in Section 4.)</li>
+    <li>Do the KPI targets hold with real users? They are planning estimates to be validated during the beta.</li>
+    <li>When should KOHO / Plaid move from demo mode to full integration?</li>
+    <li>When do AI calls move to a server-side proxy for production?</li>
+  </ol>
+
+  <h3>Explanation of terms</h3>
+  <table>
+    <tr><th style="width:24%">Term</th><th>Meaning in this document</th></tr>
+    <tr><td><b>Walmart+</b></td><td>Walmart's paid membership program. Its retention is the main business goal.</td></tr>
+    <tr><td><b>Flyer / rollback</b></td><td>Weekly promotional prices. "Rollback" is Walmart's name for a temporary price cut.</td></tr>
+    <tr><td><b>YNAB</b></td><td>"You Need A Budget", a budgeting app. Used here as a budget source and for spend sync-back.</td></tr>
+    <tr><td><b>KOHO</b></td><td>A Canadian prepaid Visa and money app. Its balance can be checked at checkout.</td></tr>
+    <tr><td><b>Plaid</b></td><td>A service that securely connects apps to bank accounts. Used to read the KOHO balance.</td></tr>
+    <tr><td><b>OAuth</b></td><td>A standard way to let one app access another without sharing a password. Used for YNAB sign-in.</td></tr>
+    <tr><td><b>North Star metric</b></td><td>The one metric that best captures the value the product delivers to users.</td></tr>
+    <tr><td><b>RICE</b></td><td>A prioritization method that scores features on Reach, Impact, Confidence and Effort.</td></tr>
+    <tr><td><b>A/B test</b></td><td>An experiment that compares two versions with similar user groups to see which performs better.</td></tr>
+    <tr><td><b>Budget compliance</b></td><td>Whether a generated basket stays within the stated budget.</td></tr>
+  </table>
+</section>
+
+</body>
+</html>
