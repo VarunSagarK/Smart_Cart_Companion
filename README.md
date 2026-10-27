@@ -18,7 +18,7 @@ Built as a product prototype during an AI Product Management course.
 
 <sub>Screens from the live demo running on mock data.</sub>
 
-## 🌟 1. Product vision
+## 🌟 Product vision
 
 **Plan groceries smarter within budget.**
 
@@ -32,7 +32,7 @@ The long-term goal is a household-first AI planning ecosystem that:
 
 The bigger bet: move Walmart from a place where groceries are *bought* to the place where households *plan* them.
 
-## 🧩 2. The problem
+## 🧩 The problem
 
 **For shoppers:** grocery planning is spread across separate tools: weekly flyers, a budgeting app, and the effort of hunting for savings. The result is overspending, missed flyer savings and decision fatigue.
 
@@ -45,7 +45,7 @@ The bigger bet: move Walmart from a place where groceries are *bought* to the pl
 
 **The opportunity:** make Walmart+ the default place where households plan their groceries.
 
-## 👥 3. Who it's for
+## 👥 Who it's for
 
 **Users:**
 
@@ -56,7 +56,7 @@ The bigger bet: move Walmart from a place where groceries are *bought* to the pl
 
 **Customer (who benefits and pays):** Walmart, through better Walmart+ retention, more repeat grocery orders and larger recurring baskets. Secondary revenue could come from fintech referral partnerships and premium AI planning tools.
 
-## 💡 4. The solution
+## 💡 The solution
 
 Plan → Basket → Check → Buy → Review:
 
@@ -72,7 +72,7 @@ Plan → Basket → Check → Buy → Review:
 
 If YNAB or the flyer feed is unavailable, the app keeps working: a manual budget replaces YNAB, and a default optimized catalog replaces live flyer data.
 
-## 🎯 5. Goals and success metrics
+## 🎯 Goals and success metrics
 
 **North Star: Weekly Repeat Grocery Planning Usage.** The share of users who come back every week to plan with the AI Planner. Groceries are a weekly habit, so repeat planning is the clearest sign the product has become part of the routine.
 
@@ -89,7 +89,7 @@ If YNAB or the flyer feed is unavailable, the app keeps working: a manual budget
 
 These are planning targets for the beta, not measured results. They are based on competitor analysis, observed grocery-planning behavior and gap analysis, and still need validation with real users during the beta. The reasoning behind each target is in the [PRD](about-the-product/smart-cart-companion-prd.pdf).
 
-## 🥊 6. Competitive landscape
+## 🥊 Competitive landscape
 
 | Product | Strong at | Gap Smart Cart Companion fills |
 |---|---|---|
@@ -101,7 +101,7 @@ These are planning targets for the beta, not measured results. They are based on
 
 **Differentiator:** the only option that combines grocery planning, flyer automation, budget sync, household personalization and repeat-purchase intelligence.
 
-## 📦 7. MVP scope
+## 📦 MVP scope
 
 **In the MVP:** AI Grocery Planner, personalized onboarding, household-size and dietary optimization, flyer/rollback ingestion (mock data, built to scale), YNAB budget sync, basket generation, budget validation, Walmart cart handoff.
 
@@ -123,14 +123,14 @@ These are planning targets for the beta, not measured results. They are based on
 - **Medium:** Smart Repeat, wellness optimization
 - **Lower:** behavioral insights, pantry intelligence
 
-## 🧪 8. Experiments
+## 🧪 Experiments
 
 | Test | Compares | Measures |
 |---|---|---|
 | A | AI Planner vs. the standard Walmart grocery flow | Basket conversion, savings utilization, repeat usage |
 | B | YNAB-synced budgets vs. manual budgets | Budget compliance, retention, user trust |
 
-## ⚠️ 9. Risks and how they're handled
+## ⚠️ Risks and how they're handled
 
 | Assumption | If it fails | Mitigation |
 |---|---|---|
@@ -140,7 +140,7 @@ These are planning targets for the beta, not measured results. They are based on
 | Walmart APIs are accessible | Limited real-time integration | Mock data with a scalable architecture, phased rollout |
 | AI recommendations are good | Poor personalization | Feedback loops and confidence scoring |
 
-## 🗺️ 10. Rollout and milestones
+## 🗺️ Rollout and milestones
 
 | Milestone | Goal | Status |
 |---|---|---|
@@ -152,11 +152,11 @@ These are planning targets for the beta, not measured results. They are based on
 
 **Rollout:** Phase 1 is a Walmart+ beta for budget-conscious households and families. Phase 2 expands regionally and adds Smart Repeat. Phase 3 grows into a full household grocery ecosystem.
 
-## 🧭 11. Product principles
+## 🧭 Product principles
 
 Budget clarity · Household simplicity · Savings automation · User trust · Configurable control · Walmart-native experience · Sustainable repeat behavior
 
-## 📍 12. Where it stands
+## 📍 Where it stands
 
 A working prototype with mock catalog data. YNAB and OpenAI connect when API keys are added; KOHO, Walmart APIs and payments run in demo mode. Every integration falls back to demo mode without keys, so the live demo works without any accounts.
 
